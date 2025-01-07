@@ -1,0 +1,564 @@
+{
+    "catalogue": [
+        {
+            "name": "ampli",
+            "length": 1,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 5,
+            "writable": 2
+        },
+        {
+            "name": "boolean_scalar",
+            "length": 1,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 1,
+            "writable": 3
+        },
+        {
+            "name": "double_scalar",
+            "length": 1,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 5,
+            "writable": 3
+        },
+        {
+            "name": "double_scalar_rww",
+            "length": 1,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 5,
+            "writable": 1
+        },
+        {
+            "name": "double_scalar_w",
+            "length": 1,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 5,
+            "writable": 2
+        },
+        {
+            "name": "float_scalar",
+            "length": 1,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 4,
+            "writable": 3
+        },
+        {
+            "name": "long64_scalar",
+            "length": 1,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 23,
+            "writable": 3
+        },
+        {
+            "name": "long_scalar",
+            "length": 1,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 3,
+            "writable": 3
+        },
+        {
+            "name": "long_scalar_rww",
+            "length": 1,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 3,
+            "writable": 1
+        },
+        {
+            "name": "long_scalar_w",
+            "length": 1,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 3,
+            "writable": 2
+        },
+        {
+            "name": "no_value",
+            "length": 1,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 3,
+            "writable": 0
+        },
+        {
+            "name": "short_scalar",
+            "length": 1,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 2,
+            "writable": 3
+        },
+        {
+            "name": "short_scalar_ro",
+            "length": 1,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 2,
+            "writable": 0
+        },
+        {
+            "name": "short_scalar_rww",
+            "length": 1,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 2,
+            "writable": 1
+        },
+        {
+            "name": "short_scalar_w",
+            "length": 1,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 2,
+            "writable": 2
+        },
+        {
+            "name": "string_scalar",
+            "length": 1,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 8,
+            "writable": 3
+        },
+        {
+            "name": "throw_exception",
+            "length": 1,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 3,
+            "writable": 0
+        },
+        {
+            "name": "uchar_scalar",
+            "length": 1,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 22,
+            "writable": 3
+        },
+        {
+            "name": "ulong64_scalar",
+            "length": 1,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 24,
+            "writable": 3
+        },
+        {
+            "name": "ushort_scalar",
+            "length": 1,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 6,
+            "writable": 3
+        },
+        {
+            "name": "ulong_scalar",
+            "length": 1,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 7,
+            "writable": 3
+        },
+        {
+            "name": "enum_scalar",
+            "length": 1,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 29,
+            "writable": 3
+        },
+        {
+            "name": "freq",
+            "length": 1,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 5,
+            "writable": 2
+        },
+        {
+            "name": "enum_scalar_ro",
+            "length": 1,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 29,
+            "writable": 0
+        },
+        {
+            "name": "echo_mode",
+            "length": 1,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 1,
+            "writable": 3
+        },
+        {
+            "name": "boolean_spectrum",
+            "length": 4096,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 1,
+            "writable": 3
+        },
+        {
+            "name": "boolean_spectrum_ro",
+            "length": 4096,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 1,
+            "writable": 0
+        },
+        {
+            "name": "double_spectrum",
+            "length": 4096,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 5,
+            "writable": 3
+        },
+        {
+            "name": "double_spectrum_ro",
+            "length": 4096,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 5,
+            "writable": 0
+        },
+        {
+            "name": "float_spectrum",
+            "length": 4096,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 4,
+            "writable": 3
+        },
+        {
+            "name": "float_spectrum_ro",
+            "length": 4096,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 4,
+            "writable": 0
+        },
+        {
+            "name": "long64_spectrum_ro",
+            "length": 4096,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 23,
+            "writable": 0
+        },
+        {
+            "name": "long_spectrum",
+            "length": 4096,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 3,
+            "writable": 3
+        },
+        {
+            "name": "long_spectrum_ro",
+            "length": 4096,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 3,
+            "writable": 0
+        },
+        {
+            "name": "short_spectrum",
+            "length": 4096,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 2,
+            "writable": 3
+        },
+        {
+            "name": "short_spectrum_ro",
+            "length": 4096,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 2,
+            "writable": 0
+        },
+        {
+            "name": "string_spectrum",
+            "length": 256,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 8,
+            "writable": 3
+        },
+        {
+            "name": "string_spectrum_ro",
+            "length": 256,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 8,
+            "writable": 0
+        },
+        {
+            "name": "uchar_spectrum",
+            "length": 4096,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 22,
+            "writable": 3
+        },
+        {
+            "name": "uchar_spectrum_ro",
+            "length": 4096,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 22,
+            "writable": 0
+        },
+        {
+            "name": "ulong64_spectrum_ro",
+            "length": 4096,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 24,
+            "writable": 0
+        },
+        {
+            "name": "ulong_spectrum_ro",
+            "length": 4096,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 7,
+            "writable": 0
+        },
+        {
+            "name": "ushort_spectrum",
+            "length": 4096,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 6,
+            "writable": 3
+        },
+        {
+            "name": "ushort_spectrum_ro",
+            "length": 4096,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 6,
+            "writable": 0
+        },
+        {
+            "name": "wave",
+            "length": 4096,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 5,
+            "writable": 0
+        },
+        {
+            "name": "enum_spectrum",
+            "length": 4096,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 29,
+            "writable": 3
+        },
+        {
+            "name": "enum_spectrum_ro",
+            "length": 4096,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 29,
+            "writable": 0
+        },
+        {
+            "name": "boolean_image",
+            "length": 251,
+            "channels": 251,
+            "accessMode": "",
+            "tangoTypeId": 1,
+            "writable": 3
+        },
+        {
+            "name": "boolean_image",
+            "length": 251,
+            "channels": 251,
+            "accessMode": "",
+            "tangoTypeId": 1,
+            "writable": 0
+        },
+        {
+            "name": "double_image",
+            "length": 251,
+            "channels": 251,
+            "accessMode": "",
+            "tangoTypeId": 5,
+            "writable": 3
+        },
+        {
+            "name": "double_image_ro",
+            "length": 251,
+            "channels": 251,
+            "accessMode": "",
+            "tangoTypeId": 5,
+            "writable": 0
+        },
+        {
+            "name": "float_image",
+            "length": 251,
+            "channels": 251,
+            "accessMode": "",
+            "tangoTypeId": 4,
+            "writable": 3
+        },
+        {
+            "name": "float_image",
+            "length": 251,
+            "channels": 251,
+            "accessMode": "",
+            "tangoTypeId": 4,
+            "writable": 0
+        },
+        {
+            "name": "long64_image_ro",
+            "length": 251,
+            "channels": 251,
+            "accessMode": "",
+            "tangoTypeId": 23,
+            "writable": 0
+        },
+        {
+            "name": "long_image",
+            "length": 251,
+            "channels": 251,
+            "accessMode": "",
+            "tangoTypeId": 3,
+            "writable": 3
+        },
+        {
+            "name": "long_image_ro",
+            "length": 251,
+            "channels": 251,
+            "accessMode": "",
+            "tangoTypeId": 3,
+            "writable": 0
+        },
+        {
+            "name": "short_image",
+            "length": 251,
+            "channels": 251,
+            "accessMode": "",
+            "tangoTypeId": 2,
+            "writable": 3
+        },
+        {
+            "name": "short_image_ro",
+            "length": 251,
+            "channels": 251,
+            "accessMode": "",
+            "tangoTypeId": 2,
+            "writable": 0
+        },
+        {
+            "name": "string_image",
+            "length": 256,
+            "channels": 256,
+            "accessMode": "",
+            "tangoTypeId": 8,
+            "writable": 3
+        },
+        {
+            "name": "string_image_ro",
+            "length": 256,
+            "channels": 256,
+            "accessMode": "",
+            "tangoTypeId": 8,
+            "writable": 0
+        },
+        {
+            "name": "uchar_image",
+            "length": 251,
+            "channels": 251,
+            "accessMode": "",
+            "tangoTypeId": 22,
+            "writable": 3
+        },
+        {
+            "name": "uchar_image",
+            "length": 251,
+            "channels": 251,
+            "accessMode": "",
+            "tangoTypeId": 22,
+            "writable": 0
+        },
+        {
+            "name": "ulong64_image_ro",
+            "length": 251,
+            "channels": 251,
+            "accessMode": "",
+            "tangoTypeId": 24,
+            "writable": 0
+        },
+        {
+            "name": "ulong_image_ro",
+            "length": 251,
+            "channels": 251,
+            "accessMode": "",
+            "tangoTypeId": 7,
+            "writable": 0
+        },
+        {
+            "name": "ushort_image",
+            "length": 251,
+            "channels": 251,
+            "accessMode": "",
+            "tangoTypeId": 6,
+            "writable": 3
+        },
+        {
+            "name": "ushort_image_ro",
+            "length": 8192,
+            "channels": 8192,
+            "accessMode": "",
+            "tangoTypeId": 6,
+            "writable": 0
+        },
+        {
+            "name": "enum_image_ro",
+            "length": 251,
+            "channels": 251,
+            "accessMode": "",
+            "tangoTypeId": 29,
+            "writable": 0
+        },
+        {
+            "name": "enum_image",
+            "length": 251,
+            "channels": 251,
+            "accessMode": "",
+            "tangoTypeId": 29,
+            "writable": 3
+        },
+        {
+            "name": "State",
+            "length": 1,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 19,
+            "writable": 0
+        },
+        {
+            "name": "Status",
+            "length": 1,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 8,
+            "writable": 0
+        }
+    ]
+}

@@ -1,5 +1,5 @@
-PROJECT(ChimeraTK-DeviceAccess-TangoBackend)
 cmake_minimum_required(VERSION 3.16)
+PROJECT(ChimeraTK-DeviceAccess-TangoBackend)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
 
@@ -13,11 +13,13 @@ include(cmake/set_default_flags.cmake)
 include(cmake/enable_code_coverage_report.cmake)
 
 FIND_PACKAGE(ChimeraTK-DeviceAccess 03.11 REQUIRED)
+FIND_PACKAGE(Boost COMPONENTS thread unit_test_framework REQUIRED)
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 FIND_PACKAGE(PkgConfig REQUIRED)
 
 PKG_CHECK_MODULES(Tango REQUIRED IMPORTED_TARGET tango)
+PKG_CHECK_MODULES(Json REQUIRED IMPORTED_TARGET nlohmann_json)
 
 set(${PROJECT_NAME}_INCLUDE_DIRS ${${PROJECT_NAME}_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include/)
 
@@ -35,7 +37,6 @@ target_link_libraries(${PROJECT_NAME}
 # --no-as-needed: force linking against this library. This is required for proper registering.
 target_link_options(${PROJECT_NAME} PUBLIC "-Wl,--no-as-needed")
 
-
 # Enable documentation
 include(cmake/enable_doxygen_documentation.cmake)
 
@@ -48,31 +49,36 @@ install(TARGETS ${PROJECT_NAME}
 )
 
 option(BUILD_TESTS "Build test programs" ON)
-if (BUILD_TESTS)
-    enable_testing()
 
-    file(GLOB testServerSources "${CMAKE_SOURCE_DIR}/tests/generated/*.cpp")
-    list(FILTER testServerSources EXCLUDE REGEX "main.cpp")
-    file(GLOB testServerHeaders "${CMAKE_SOURCE_DIR}/tests/generated/*.h")
+if(BUILD_TESTS)
+  enable_testing()
 
-    # Compile an object library for the Tango test server
-    add_library(tangoTestServer ${testServerSources} ${testServerHeaders})
-    target_link_libraries(tangoTestServer PRIVATE PkgConfig::Tango)
+  file(GLOB testServerSources "${CMAKE_SOURCE_DIR}/tests/generated/*.cpp")
+  file(GLOB testServerHeaders "${CMAKE_SOURCE_DIR}/tests/generated/*.h")
 
-    aux_source_directory(${CMAKE_SOURCE_DIR}/tests/executables_src testExecutables)
+  # Compile an object library for the Tango test server
+  add_executable(tangoTestServer ${testServerSources} ${testServerHeaders})
+  target_link_libraries(tangoTestServer PRIVATE PkgConfig::Tango)
 
-    foreach(testExecutableSrcFile ${testExecutables})
-      # NAME_WE means the base name without path and (longest) extension
-      get_filename_component(excutableName ${testExecutableSrcFile} NAME_WE)
+  aux_source_directory(${CMAKE_SOURCE_DIR}/tests/executables_src testExecutables)
 
-      # each test includes a DOOCS server
-      add_executable(${excutableName} $<TARGET_OBJECTS:tangoTestServer> ${testExecutableSrcFile})
-      target_include_directories(${excutableName} PRIVATE "${CMAKE_SOURCE_DIR}/tests/generated")
-      target_link_libraries(${excutableName}
-        PRIVATE ChimeraTK::ChimeraTK-DeviceAccess PkgConfig::Tango ${PROJECT_NAME})
-      add_test(${excutableName} ${excutableName})
-    endforeach(testExecutableSrcFile)
+  file(GLOB testLibSources "${CMAKE_SOURCE_DIR}/tests/lib/*.cpp")
+  file(GLOB testLibHeaders "${CMAKE_SOURCE_DIR}/tests/lib/*.h")
+  add_library(testLibrary OBJECT ${testLibSources} ${testLibHeaders})
+  target_link_libraries(testLibrary PRIVATE PkgConfig::Tango)
 
+  foreach(testExecutableSrcFile ${testExecutables})
+    # NAME_WE means the base name without path and (longest) extension
+    get_filename_component(excutableName ${testExecutableSrcFile} NAME_WE)
+
+    add_executable(${excutableName} $<TARGET_OBJECTS:testLibrary> ${testExecutableSrcFile})
+    target_include_directories(${excutableName} PRIVATE "${CMAKE_SOURCE_DIR}/tests/lib")
+    target_link_libraries(${excutableName}
+      PRIVATE ChimeraTK::ChimeraTK-DeviceAccess PkgConfig::Tango ${PROJECT_NAME} Boost::unit_test_framework)
+    add_test(${excutableName} ${excutableName})
+  endforeach(testExecutableSrcFile)
+
+  file(COPY tests/unifiedBackendTestCache.json DESTINATION ${CMAKE_BINARY_DIR})
 endif()
 
 # we support our cmake EXPORTS as imported targets
