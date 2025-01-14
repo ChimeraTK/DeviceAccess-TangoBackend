@@ -16,8 +16,7 @@ namespace ChimeraTK {
    public:
     TangoBackendRegisterAccessor(boost::shared_ptr<TangoBackend> backend_, const std::string& registerPathName,
         size_t numberOfWords, size_t wordOffsetInRegister, AccessModeFlags flags)
-    : NDRegisterAccessor<UserType>(registerPathName, flags),
-      backend(std::move(backend_)) {}
+    : NDRegisterAccessor<UserType>(registerPathName, flags), backend(std::move(backend_)) {}
     void doReadTransferSynchronously() override;
     bool doWriteTransfer(VersionNumber) override;
 

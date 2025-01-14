@@ -31,6 +31,8 @@ namespace ChimeraTK {
 
     std::string readDeviceInfo() override;
 
+    std::shared_ptr<Tango::DeviceProxy> getDeviceProxy() { return _deviceProxy; }
+
    private:
     std::string _address;
     std::shared_ptr<Tango::DeviceProxy> _deviceProxy;

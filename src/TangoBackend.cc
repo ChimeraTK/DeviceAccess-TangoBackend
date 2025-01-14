@@ -34,12 +34,35 @@ namespace ChimeraTK {
   }
 
   TangoBackend::TangoBackend(std::string address) : DeviceBackendImpl(), _address(std::move(address)) {
+    _address.replace(_address.find("%23"), 3, "#");
     FILL_VIRTUAL_FUNCTION_TEMPLATE_VTABLE(getRegisterAccessor_impl);
   }
 
-  void TangoBackend::open() {}
+  void TangoBackend::open() {
+    try {
+      if(!_deviceProxy) {
+        _deviceProxy = std::make_shared<Tango::DeviceProxy>(_address);
+        _deviceProxy->set_transparency_reconnection(false);
+      }
+      else {
+        _deviceProxy->connect(_address);
+      }
+      setOpenedAndClearException();
+    }
+    catch(Tango::WrongNameSyntax& ex) {
+      throw ChimeraTK::logic_error(
+          "Invalid Tango device address " + _address + ", " + static_cast<std::string>(ex.errors[0].desc));
+    }
+    catch(Tango::ConnectionFailed& ex) {
+      throw ChimeraTK::runtime_error(
+          "Cannot connect to " + _address + ", " + static_cast<std::string>(ex.errors[0].desc));
+    }
+  }
 
-  void TangoBackend::close() {}
+  void TangoBackend::close() {
+    _opened = false;
+    _deviceProxy.reset();
+  }
 
   /********************************************************************************************************************/
 
