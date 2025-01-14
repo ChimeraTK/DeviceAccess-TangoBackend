@@ -3,6 +3,8 @@
 
 #include "TangoBackend.h"
 
+#include "TangoRegisterAccessor.h"
+
 #include "RegisterCatalogue.h"
 
 #include <ChimeraTK/BackendFactory.h>
@@ -31,12 +33,25 @@ namespace ChimeraTK {
     return boost::shared_ptr<DeviceBackend>(new TangoBackend(address));
   }
 
-  TangoBackend::TangoBackend(std::string address) : DeviceBackendImpl(), _address(std::move(address)) {}
+  TangoBackend::TangoBackend(std::string address) : DeviceBackendImpl(), _address(std::move(address)) {
+    FILL_VIRTUAL_FUNCTION_TEMPLATE_VTABLE(getRegisterAccessor_impl);
+  }
 
   void TangoBackend::open() {}
 
   void TangoBackend::close() {}
 
+  /********************************************************************************************************************/
+
+  template<typename UserType>
+  boost::shared_ptr<NDRegisterAccessor<UserType>> TangoBackend::getRegisterAccessor_impl(
+      const RegisterPath& registerPathName, size_t numberOfWords, size_t wordOffsetInRegister, AccessModeFlags flags) {
+    boost::shared_ptr<NDRegisterAccessor<UserType>> p;
+
+    auto sharedThis = boost::static_pointer_cast<TangoBackend>(shared_from_this());
+    p.reset(new TangoBackendRegisterAccessor<UserType>(sharedThis, registerPathName, numberOfWords, wordOffsetInRegister, flags));
+    return p;
+  }
 
   RegisterCatalogue TangoBackend::getRegisterCatalogue() const {
     return RegisterCatalogue(_registerCatalogue.clone());

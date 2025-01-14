@@ -35,21 +35,6 @@ target_link_libraries(${PROJECT_NAME}
 # --no-as-needed: force linking against this library. This is required for proper registering.
 target_link_options(${PROJECT_NAME} PUBLIC "-Wl,--no-as-needed")
 
-option(BUILD_TESTS "Build test programs" ON)
-
-if(BUILD_TESTS)
-  # Create the executables for automated unit testing.
-  # Currently we assume that they are all tests contained in one file, so
-  # each file gives a new executable. This section has to be adapted if this should change.
-  # loop over all sources files in execultables_src directory
-  ENABLE_TESTING()
-  aux_source_directory(${CMAKE_SOURCE_DIR}/tests/executables_src testExecutables)
-
-  foreach(testExecutableSrcFile ${testExecutables})
-    # NAME_WE means the base name without path and (longest) extension
-    get_filename_component(excutableName ${testExecutableSrcFile} NAME_WE)
-  endforeach(testExecutableSrcFile)
-endif()
 
 # Enable documentation
 include(cmake/enable_doxygen_documentation.cmake)
@@ -61,6 +46,34 @@ install(TARGETS ${PROJECT_NAME}
   EXPORT ${PROJECT_NAME}Targets
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
+
+option(BUILD_TESTS "Build test programs" ON)
+if (BUILD_TESTS)
+    enable_testing()
+
+    file(GLOB testServerSources "${CMAKE_SOURCE_DIR}/tests/generated/*.cpp")
+    list(FILTER testServerSources EXCLUDE REGEX "main.cpp")
+    file(GLOB testServerHeaders "${CMAKE_SOURCE_DIR}/tests/generated/*.h")
+
+    # Compile an object library for the Tango test server
+    add_library(tangoTestServer ${testServerSources} ${testServerHeaders})
+    target_link_libraries(tangoTestServer PRIVATE PkgConfig::Tango)
+
+    aux_source_directory(${CMAKE_SOURCE_DIR}/tests/executables_src testExecutables)
+
+    foreach(testExecutableSrcFile ${testExecutables})
+      # NAME_WE means the base name without path and (longest) extension
+      get_filename_component(excutableName ${testExecutableSrcFile} NAME_WE)
+
+      # each test includes a DOOCS server
+      add_executable(${excutableName} $<TARGET_OBJECTS:tangoTestServer> ${testExecutableSrcFile})
+      target_include_directories(${excutableName} PRIVATE "${CMAKE_SOURCE_DIR}/tests/generated")
+      target_link_libraries(${excutableName}
+        PRIVATE ChimeraTK::ChimeraTK-DeviceAccess PkgConfig::Tango ${PROJECT_NAME})
+      add_test(${excutableName} ${excutableName})
+    endforeach(testExecutableSrcFile)
+
+endif()
 
 # we support our cmake EXPORTS as imported targets
 set(PROVIDES_EXPORTED_TARGETS 1)
