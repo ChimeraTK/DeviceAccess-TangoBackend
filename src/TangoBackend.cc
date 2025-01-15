@@ -26,6 +26,8 @@ static struct BackendRegisterer {
 } backendRegisterer;
 
 namespace ChimeraTK {
+  // This is from public API, cannot change currently
+  // NOLINTNEXTLINE(performance-unnecessary-value-param)
   boost::shared_ptr<DeviceBackend> TangoBackend::createInstance(
       std::string address, [[maybe_unused]] std::map<std::string, std::string> parameters) {
     // This is from public API, cannot change currently
@@ -79,8 +81,12 @@ namespace ChimeraTK {
       const RegisterPath& registerPathName, size_t numberOfWords, size_t wordOffsetInRegister, AccessModeFlags flags) {
     boost::shared_ptr<NDRegisterAccessor<UserType>> p;
 
+    auto info = _registerCatalogue.getBackendRegister(registerPathName);
+
     auto sharedThis = boost::static_pointer_cast<TangoBackend>(shared_from_this());
-    p.reset(new TangoBackendRegisterAccessor<UserType>(sharedThis, registerPathName, numberOfWords, wordOffsetInRegister, flags));
+    p.reset(new TangoBackendRegisterAccessor<UserType>(
+        sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
+    p->setExceptionBackend(shared_from_this());
     return p;
   }
 

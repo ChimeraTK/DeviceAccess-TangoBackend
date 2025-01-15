@@ -58,7 +58,7 @@ namespace ChimeraTK {
     explicit TangoRegisterInfo(Tango::AttributeInfoEx& info)
     : descriptor(util::mapTangoToUserType(info.data_type)), attributeInfo(info) {}
 
-    [[nodiscard]] ChimeraTK::RegisterPath getRegisterName() const override { return attributeInfo.name; }
+    [[nodiscard]] ChimeraTK::RegisterPath getRegisterName() const override { return "/" + attributeInfo.name; }
 
     [[nodiscard]] unsigned int getNumberOfElements() const override { return attributeInfo.max_dim_x; }
 

@@ -14,9 +14,28 @@ namespace ChimeraTK {
   template<typename UserType>
   class TangoBackendRegisterAccessor : public NDRegisterAccessor<UserType> {
    public:
-    TangoBackendRegisterAccessor(boost::shared_ptr<TangoBackend> backend_, const std::string& registerPathName,
-        size_t numberOfWords, size_t wordOffsetInRegister, AccessModeFlags flags)
-    : NDRegisterAccessor<UserType>(registerPathName, flags), backend(std::move(backend_)) {}
+    TangoBackendRegisterAccessor(boost::shared_ptr<TangoBackend> backend_, TangoRegisterInfo info,
+        const std::string& registerPathName, size_t numberOfWords, size_t wordOffsetInRegister, AccessModeFlags flags)
+    : NDRegisterAccessor<UserType>(registerPathName, flags), backend(std::move(backend_)),
+      registerInfo(std::move(info)) {
+      auto actualLength = info.getNumberOfElements();
+      auto elementOffset = wordOffsetInRegister;
+      auto nElements = numberOfWords;
+
+      if(nElements == 0) {
+        nElements = actualLength;
+      }
+
+      if(nElements + elementOffset > actualLength) {
+        throw ChimeraTK::logic_error(
+            "Requested number of words exceeds the length of the Tango attribute " + registerPathName);
+      }
+
+      auto isPartial = nElements != actualLength || elementOffset != 0;
+
+      NDRegisterAccessor<UserType>::buffer_2D.resize(1);
+      NDRegisterAccessor<UserType>::buffer_2D[0].resize(nElements);
+    }
     void doReadTransferSynchronously() override;
     bool doWriteTransfer(VersionNumber) override;
 
@@ -30,14 +49,16 @@ namespace ChimeraTK {
 
     [[nodiscard]] bool isReadOnly() const override { return isReadable() && !isWriteable(); }
 
-    [[nodiscard]] bool isWriteable() const override { return true; }
+    [[nodiscard]] bool isWriteable() const override { return registerInfo.isWriteable(); }
 
-    [[nodiscard]] bool isReadable() const override { return true; }
+    [[nodiscard]] bool isReadable() const override { return registerInfo.isReadable(); }
 
 
     /// Pointer to the backend
     boost::shared_ptr<TangoBackend> backend;
     std::shared_ptr<Tango::DeviceProxy> proxy;
+    TangoRegisterInfo registerInfo;
+    Tango::DeviceAttribute attr;
   };
 
   template<typename UserType>
@@ -46,7 +67,13 @@ namespace ChimeraTK {
       throw ChimeraTK::runtime_error(std::string("Exception reported by another accessor"));
     }
 
-    throw ChimeraTK::logic_error("Not implemented");
+    try {
+      attr = backend->getDeviceProxy()->read_attribute(registerInfo.attributeInfo.name);
+    }
+    catch(CORBA::Exception& ex) {
+      throw ChimeraTK::runtime_error(
+          "Failed to read from attribute " + registerInfo.attributeInfo.name + ": " + ex._name());
+    }
   }
 
   template<typename UserType>
