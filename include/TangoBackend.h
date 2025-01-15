@@ -36,6 +36,7 @@ namespace ChimeraTK {
    private:
     std::string _address;
     std::shared_ptr<Tango::DeviceProxy> _deviceProxy;
-    TangoRegisterCatalogue _registerCatalogue{};
+    mutable TangoRegisterCatalogue _registerCatalogue{};
+    DataDescriptor mapTangoType();
   };
 } // namespace ChimeraTK

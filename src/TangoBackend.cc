@@ -43,11 +43,17 @@ namespace ChimeraTK {
       if(!_deviceProxy) {
         _deviceProxy = std::make_shared<Tango::DeviceProxy>(_address);
         _deviceProxy->set_transparency_reconnection(false);
+        auto catalogue = TangoRegisterCatalogue();
+
+        std::unique_ptr<Tango::AttributeInfoListEx> attributes(_deviceProxy->attribute_list_query_ex());
+        for(auto& attr : *attributes) {
+          catalogue.addRegister(TangoRegisterInfo(attr));
+        }
+        _registerCatalogue = std::move(catalogue);
       }
       else {
         _deviceProxy->connect(_address);
       }
-      setOpenedAndClearException();
     }
     catch(Tango::WrongNameSyntax& ex) {
       throw ChimeraTK::logic_error(
@@ -57,6 +63,8 @@ namespace ChimeraTK {
       throw ChimeraTK::runtime_error(
           "Cannot connect to " + _address + ", " + static_cast<std::string>(ex.errors[0].desc));
     }
+
+    setOpenedAndClearException();
   }
 
   void TangoBackend::close() {
