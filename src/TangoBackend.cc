@@ -3,15 +3,14 @@
 
 #include "TangoBackend.h"
 
-#include "TangoRegisterAccessor.h"
-
+#include "OfflineCache.h"
 #include "RegisterCatalogue.h"
+#include "TangoRegisterAccessor.h"
+#include <tango/tango.h>
 
 #include <ChimeraTK/BackendFactory.h>
-#include <ChimeraTK/RegisterCatalogue.h>
 #include <ChimeraTK/MetadataCatalogue.h>
-
-#include <tango/tango.h>
+#include <ChimeraTK/RegisterCatalogue.h>
 
 #include <boost/shared_ptr.hpp>
 
@@ -32,11 +31,20 @@ namespace ChimeraTK {
       std::string address, [[maybe_unused]] std::map<std::string, std::string> parameters) {
     // This is from public API, cannot change currently
     // NOLINTNEXTLINE(performance-unnecessary-value-param)
-    return boost::shared_ptr<DeviceBackend>(new TangoBackend(address));
+    std::string cacheFile;
+    try {
+      cacheFile = parameters.at("cacheFile");
+    }
+    catch(std::out_of_range&) {
+      throw ChimeraTK::logic_error("Missing mandatory parameter: cacheFile");
+    }
+
+    return boost::shared_ptr<DeviceBackend>(new TangoBackend(address, cacheFile));
   }
 
-  TangoBackend::TangoBackend(std::string address) : DeviceBackendImpl(), _address(std::move(address)) {
+  TangoBackend::TangoBackend(std::string address, const std::string& cacheFile) : DeviceBackendImpl(), _address(std::move(address)) {
     _address.replace(_address.find("%23"), 3, "#");
+    _registerCatalogue = OfflineCache(cacheFile).read();
     FILL_VIRTUAL_FUNCTION_TEMPLATE_VTABLE(getRegisterAccessor_impl);
   }
 

@@ -18,6 +18,7 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 FIND_PACKAGE(PkgConfig REQUIRED)
 
 PKG_CHECK_MODULES(Tango REQUIRED IMPORTED_TARGET tango)
+PKG_CHECK_MODULES(Json REQUIRED IMPORTED_TARGET nlohmann_json)
 
 set(${PROJECT_NAME}_INCLUDE_DIRS ${${PROJECT_NAME}_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include/)
 
@@ -73,6 +74,7 @@ if (BUILD_TESTS)
       add_test(${excutableName} ${excutableName})
     endforeach(testExecutableSrcFile)
 
+    file(COPY tests/unifiedBackendTestCache.json DESTINATION ${CMAKE_BINARY_DIR})
 endif()
 
 # we support our cmake EXPORTS as imported targets

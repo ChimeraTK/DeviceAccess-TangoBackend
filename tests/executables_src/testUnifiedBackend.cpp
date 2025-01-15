@@ -1,20 +1,21 @@
 // SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-
+#include "TangoTestServer.h"
 #define BOOST_TEST_MODULE testUnifiedBackendTest
 
 #include <ChimeraTK/UnifiedBackendTest.h>
 
 #include <boost/filesystem.hpp>
 
-#include <boost/test/included/unit_test.hpp>
 
 #include <tango/tango.h>
 
 #include <chrono>
 #include <filesystem>
 #include <random>
+
+#include <boost/test/included/unit_test.hpp>
 
 using namespace boost::unit_test_framework;
 using namespace ChimeraTK;
@@ -78,6 +79,7 @@ struct ThreadedTangoServer {
   static std::atomic<bool> shutdownRequested;
   static ThreadedTangoServer* self;
   static ThreadedTangoServer& instance() { return *self; }
+  TangoTestServer_ns::TangoTestServer *ourDevice;
 };
 
 ThreadedTangoServer::ThreadedTangoServer(std::string setTestName, bool setVerbose)
@@ -139,6 +141,9 @@ void ThreadedTangoServer::start() {
     auto* tg = Tango::Util::init(int(args.size()), const_cast<char**>(args.data()));
     tg->server_init(false);
     auto devices = tg->get_device_list_by_class("TangoTestServer");
+    assert(devices.size() == 1);
+
+    ourDevice = dynamic_cast<TangoTestServer_ns::TangoTestServer*>(devices[0]);
     std::cout << devices.size() << std::endl;
 
     auto callback = []() -> bool {
@@ -290,12 +295,13 @@ struct ScalarDefaults : AllRegisterDefaults<DERIVED> {
 
   template<typename UserType>
   std::vector<std::vector<UserType>> getRemoteValue() {
-    auto v = ChimeraTK::numericToUserType<UserType>(0);
+    auto v = ChimeraTK::numericToUserType<UserType>(derived->getValue());
     return {{v}};
   }
 
   void setRemoteValue() {
     auto v = derived->template generateValue<typename DERIVED::minimumUserType>()[0][0];
+    derived->setValue(v);
     //derived->prop.set_value(v);
     //this->updateStamp();
   }
@@ -343,14 +349,9 @@ struct RegSomeInt : ScalarDefaults<RegSomeInt> {
   typedef int32_t minimumUserType;
   int32_t increment{3};
 
-  static constexpr auto capabilities = ScalarDefaults<RegSomeInt>::capabilities.enableSwitchReadOnly();
+  void setValue(minimumUserType v) { ThreadedTangoServer::self->ourDevice->attr_IntScalar_read[0] = v; }
 
-  void switchReadOnly(bool enable) {
-    if(enable) {
-    }
-    else {
-    }
-  }
+  minimumUserType getValue() { return ThreadedTangoServer::self->ourDevice->attr_IntScalar_read[0]; }
 };
 
 /**********************************************************************************************************************/
@@ -370,7 +371,7 @@ BOOST_AUTO_TEST_CASE(unifiedBackendTest) {
                  .addRegister<RegSomeDoubleArray>();
 #endif
 
-  ubt.runTests("(tango:" + ThreadedTangoServer::self->getClientUrl() + ")");
+  ubt.runTests("(tango:" + ThreadedTangoServer::self->getClientUrl() + "?cacheFile=unifiedBackendTestCache.json)");
 }
 
 /**********************************************************************************************************************/

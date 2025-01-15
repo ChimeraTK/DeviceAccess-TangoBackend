@@ -31,7 +31,7 @@ namespace ChimeraTK {
             "Requested number of words exceeds the length of the Tango attribute " + registerPathName);
       }
 
-      auto isPartial = nElements != actualLength || elementOffset != 0;
+      //auto isPartial = nElements != actualLength || elementOffset != 0;
 
       NDRegisterAccessor<UserType>::buffer_2D.resize(1);
       NDRegisterAccessor<UserType>::buffer_2D[0].resize(nElements);

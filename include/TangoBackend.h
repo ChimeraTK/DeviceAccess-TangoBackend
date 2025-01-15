@@ -22,7 +22,7 @@ namespace ChimeraTK {
         const RegisterPath& registerPathName, size_t numberOfWords, size_t wordOffsetInRegister, AccessModeFlags flags);
     DEFINE_VIRTUAL_FUNCTION_TEMPLATE_VTABLE_FILLER(DoocsBackend, getRegisterAccessor_impl, 4);
 
-    explicit TangoBackend(std::string address);
+    explicit TangoBackend(std::string address, const std::string &cacheFile);
 
     void open() override;
     void close() override;

@@ -1,0 +1,12 @@
+{
+    "catalogue":[
+        {
+            "name": "IntScalar",
+            "length": 1,
+            "channels": 0,
+            "accessMode": "",
+            "tangoTypeId": 3,
+            "writable": 3
+        }
+    ]
+}
