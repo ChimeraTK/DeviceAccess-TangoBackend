@@ -26,18 +26,37 @@ namespace ChimeraTK {
         nElements = actualLength;
       }
 
+      if(flags.has(AccessMode::raw) || flags.has(AccessMode::wait_for_new_data)) {
+        throw ChimeraTK::logic_error("invalid access mode for this register");
+      }
+
       if(nElements + elementOffset > actualLength) {
         throw ChimeraTK::logic_error(
             "Requested number of words exceeds the length of the Tango attribute " + registerPathName);
       }
 
-      //auto isPartial = nElements != actualLength || elementOffset != 0;
+      isPartial = nElements != actualLength || elementOffset != 0;
 
       NDRegisterAccessor<UserType>::buffer_2D.resize(1);
       NDRegisterAccessor<UserType>::buffer_2D[0].resize(nElements);
     }
     void doReadTransferSynchronously() override;
     bool doWriteTransfer(VersionNumber) override;
+
+    void doPreRead(TransferType) override {
+      if(!backend->isOpen()) throw ChimeraTK::logic_error("Read operation not allowed while device is closed.");
+      if(!isReadable())
+        throw ChimeraTK::logic_error(
+            "Try to read from write-only register \"" + registerInfo.getRegisterName() + "\".");
+    }
+
+    void doPreWrite(TransferType, VersionNumber) override {
+      if(!backend->isOpen()) { throw ChimeraTK::logic_error("Write operation not allowed while device is closed.");
+      }
+      if(!isWriteable()) {
+        throw ChimeraTK::logic_error("Try to write read-only register \"" + registerInfo.getRegisterName() + "\".");
+      }
+    }
 
     const std::type_info& getValueType() { return typeid(UserType); }
 
@@ -59,6 +78,8 @@ namespace ChimeraTK {
     std::shared_ptr<Tango::DeviceProxy> proxy;
     TangoRegisterInfo registerInfo;
     Tango::DeviceAttribute attr;
+    Tango::DeviceAttribute writeAttribute;
+    bool isPartial{false};
   };
 
   template<typename UserType>
@@ -70,7 +91,7 @@ namespace ChimeraTK {
     try {
       attr = backend->getDeviceProxy()->read_attribute(registerInfo.attributeInfo.name);
     }
-    catch(CORBA::Exception& ex) {
+    catch(Tango::ConnectionFailed& ex) {
       throw ChimeraTK::runtime_error(
           "Failed to read from attribute " + registerInfo.attributeInfo.name + ": " + ex._name());
     }
@@ -78,8 +99,45 @@ namespace ChimeraTK {
 
   template<typename UserType>
   bool TangoBackendRegisterAccessor<UserType>::doWriteTransfer(VersionNumber) {
-    throw ChimeraTK::logic_error("Not implemented");
+    if(!backend->isFunctional()) {
+      throw ChimeraTK::runtime_error(std::string("Exception reported by another accessor"));
+    }
+
+    try {
+      backend->getDeviceProxy()->write_attribute(writeAttribute);
+    }
+    catch(CORBA::Exception& ex) {
+      throw ChimeraTK::runtime_error(
+          "Failed to write to attribute " + registerInfo.attributeInfo.name + ": " + ex._name());
+    }
+
+    return false;
   }
 
+
+  template<typename UserType, typename TangoType>
+  class TangoBackendScalarRegisterAccessor : public TangoBackendRegisterAccessor<UserType> {
+    using TangoBackendRegisterAccessor<UserType>::TangoBackendRegisterAccessor;
+
+    void doPreWrite(TransferType type, VersionNumber version) {
+      TangoBackendRegisterAccessor<UserType>::doPreWrite(type, version);
+      auto value = ChimeraTK::userTypeToNumeric<TangoType, UserType>(this->buffer_2D[0][0]);
+      this->writeAttribute = Tango::DeviceAttribute(this->registerInfo.attributeInfo.name, value);
+    }
+
+    void doPostRead(TransferType type, bool hasNewData) {
+      TangoBackendRegisterAccessor<UserType>::doPostRead(type, hasNewData);
+      if(!hasNewData) {
+        return;
+      }
+
+      TangoType value;
+      this->attr >> value;
+      this->buffer_2D[0][0] = ChimeraTK::numericToUserType<UserType>(value);
+
+      // FIXME: We currently have no means of correlating data from Tango, so everything gets a new version number
+      TransferElement::_versionNumber = {};
+    }
+  };
 
 } // namespace ChimeraTK

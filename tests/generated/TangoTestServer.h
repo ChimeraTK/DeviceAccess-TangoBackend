@@ -36,6 +36,8 @@
 
 #include <tango/tango.h>
 
+#include <atomic>
+
 /* clang-format off */
 /*----- PROTECTED REGION END -----*/	//	TangoTestServer.h
 
@@ -68,8 +70,9 @@ class TangoTestServer : public TANGO_BASE_CLASS
 
 /*----- PROTECTED REGION ID(TangoTestServer::Data Members) ENABLED START -----*/
 /* clang-format on */
-//	Add your own data members
-/* clang-format off */
+public:
+ std::atomic_bool runtimeError{false};
+ /* clang-format off */
 /*----- PROTECTED REGION END -----*/	//	TangoTestServer::Data Members
 
 

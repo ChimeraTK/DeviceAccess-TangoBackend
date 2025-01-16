@@ -1,5 +1,5 @@
-PROJECT(ChimeraTK-DeviceAccess-TangoBackend)
 cmake_minimum_required(VERSION 3.16)
+PROJECT(ChimeraTK-DeviceAccess-TangoBackend)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
 
@@ -13,6 +13,7 @@ include(cmake/set_default_flags.cmake)
 include(cmake/enable_code_coverage_report.cmake)
 
 FIND_PACKAGE(ChimeraTK-DeviceAccess 03.11 REQUIRED)
+FIND_PACKAGE(Boost COMPONENTS thread unit_test_framework REQUIRED)
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 FIND_PACKAGE(PkgConfig REQUIRED)
@@ -70,7 +71,7 @@ if (BUILD_TESTS)
       add_executable(${excutableName} $<TARGET_OBJECTS:tangoTestServer> ${testExecutableSrcFile})
       target_include_directories(${excutableName} PRIVATE "${CMAKE_SOURCE_DIR}/tests/generated")
       target_link_libraries(${excutableName}
-        PRIVATE ChimeraTK::ChimeraTK-DeviceAccess PkgConfig::Tango ${PROJECT_NAME})
+        PRIVATE ChimeraTK::ChimeraTK-DeviceAccess PkgConfig::Tango ${PROJECT_NAME} Boost::unit_test_framework)
       add_test(${excutableName} ${excutableName})
     endforeach(testExecutableSrcFile)
 

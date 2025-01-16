@@ -14,6 +14,8 @@
 
 #include <boost/shared_ptr.hpp>
 
+#include <boost/mpl/list.hpp>
+
 #include <utility>
 
 static struct BackendRegisterer {
@@ -49,21 +51,24 @@ namespace ChimeraTK {
   }
 
   void TangoBackend::open() {
-    try {
-      if(!_deviceProxy) {
-        _deviceProxy = std::make_shared<Tango::DeviceProxy>(_address);
-        _deviceProxy->set_transparency_reconnection(false);
-        auto catalogue = TangoRegisterCatalogue();
+    // Apparently there is no way to reconnect the proxy via public api. All the relevant connection API
+    // is protected.
+    if(_deviceProxy) {
+      _deviceProxy.reset();
+    }
 
-        std::unique_ptr<Tango::AttributeInfoListEx> attributes(_deviceProxy->attribute_list_query_ex());
-        for(auto& attr : *attributes) {
-          catalogue.addRegister(TangoRegisterInfo(attr));
-        }
-        _registerCatalogue = std::move(catalogue);
+    try {
+      _deviceProxy = std::make_shared<Tango::DeviceProxy>(_address);
+      _deviceProxy->set_transparency_reconnection(false);
+      auto catalogue = TangoRegisterCatalogue();
+
+      // https://github.com/tango-controls/pytango/issues/375
+      // Some interaction with the server is needed. DeviceProxy will not throw in its constructor
+      std::unique_ptr<Tango::AttributeInfoListEx> attributes(_deviceProxy->attribute_list_query_ex());
+      for(auto& attr : *attributes) {
+        catalogue.addRegister(TangoRegisterInfo(attr));
       }
-      else {
-        _deviceProxy->connect(_address);
-      }
+      _registerCatalogue = std::move(catalogue);
     }
     catch(Tango::WrongNameSyntax& ex) {
       throw ChimeraTK::logic_error(
@@ -84,16 +89,32 @@ namespace ChimeraTK {
 
   /********************************************************************************************************************/
 
-  template<typename UserType>
-  boost::shared_ptr<NDRegisterAccessor<UserType>> TangoBackend::getRegisterAccessor_impl(
-      const RegisterPath& registerPathName, size_t numberOfWords, size_t wordOffsetInRegister, AccessModeFlags flags) {
+
+      template<typename UserType>
+      boost::shared_ptr<NDRegisterAccessor<UserType>> TangoBackend::getRegisterAccessor_impl(
+          const RegisterPath& registerPathName, size_t numberOfWords, size_t wordOffsetInRegister,
+          AccessModeFlags flags) {
     boost::shared_ptr<NDRegisterAccessor<UserType>> p;
 
     auto info = _registerCatalogue.getBackendRegister(registerPathName);
 
     auto sharedThis = boost::static_pointer_cast<TangoBackend>(shared_from_this());
-    p.reset(new TangoBackendRegisterAccessor<UserType>(
-        sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
+
+    if(info.attributeInfo.data_format == Tango::AttrDataFormat::SCALAR) {
+      switch(info.attributeInfo.data_type) {
+        case Tango::DEV_LONG:
+          p.reset(new TangoBackendScalarRegisterAccessor<UserType, Tango::DevLong>(
+              sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
+          break;
+        default:
+          p.reset(new TangoBackendRegisterAccessor<UserType>(
+              sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
+          break;
+      }
+    } else {
+      p.reset(new TangoBackendRegisterAccessor<UserType>(
+          sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
+    }
     p->setExceptionBackend(shared_from_this());
     return p;
   }

@@ -1,8 +1,10 @@
 // SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include "TangoTestServer.h"
+#define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE testUnifiedBackendTest
+
+#include "TangoTestServer.h"
 
 #include <ChimeraTK/UnifiedBackendTest.h>
 
@@ -15,7 +17,9 @@
 #include <filesystem>
 #include <random>
 
-#include <boost/test/included/unit_test.hpp>
+#define BOOST_NO_EXCEPTIONS
+#include <boost/test/unit_test.hpp>
+#undef BOOST_NO_EXCEPTIONS
 
 using namespace boost::unit_test_framework;
 using namespace ChimeraTK;
@@ -112,6 +116,10 @@ void ThreadedTangoServer::start() {
   std::unique_lock<std::mutex> in(in_mtx);
   std::condition_variable cv;
   bool threadRunning{false};
+
+  if(threadRunning) {
+    return;
+  }
 
   tangoServerThread = std::thread([&]() {
     argv.emplace_back(testName + "_ds");
@@ -262,8 +270,8 @@ struct AllRegisterDefaults {
   ChimeraTK::AccessModeFlags supportedFlags() { return {}; }
   size_t nChannels() { return 1; }
   size_t writeQueueLength() { return std::numeric_limits<size_t>::max(); }
-  size_t nRuntimeErrorCases() { return 1; }
-  typedef std::nullptr_t rawUserType;
+  size_t nRuntimeErrorCases() { return 0; }
+  using rawUserType = std::nullptr_t;
 
   static constexpr auto capabilities = TestCapabilities<>()
                                            .disableForceDataLossWrite()
@@ -273,8 +281,6 @@ struct AllRegisterDefaults {
 
   void setForceRuntimeError(bool enable, size_t) {
     if(enable) {
-    }
-    else {
     }
   }
 };
@@ -302,8 +308,6 @@ struct ScalarDefaults : AllRegisterDefaults<DERIVED> {
   void setRemoteValue() {
     auto v = derived->template generateValue<typename DERIVED::minimumUserType>()[0][0];
     derived->setValue(v);
-    //derived->prop.set_value(v);
-    //this->updateStamp();
   }
 };
 

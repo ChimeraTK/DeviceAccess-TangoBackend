@@ -457,6 +457,7 @@ void TangoTestServer::read_IntScalar(Tango::Attribute &attr)
 	/* clang-format on */
 	//	Set the attribute value
 	attr.set_value(attr_IntScalar_read);
+
 	/* clang-format off */
 	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::read_IntScalar
 }

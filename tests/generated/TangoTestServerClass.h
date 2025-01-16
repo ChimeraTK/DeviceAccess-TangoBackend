@@ -38,8 +38,10 @@
 #ifndef TangoTestServerClass_H
 #define TangoTestServerClass_H
 
-#include <tango/tango.h>
 #include "TangoTestServer.h"
+#include <tango/tango.h>
+
+#include <atomic>
 
 /* clang-format off */
 /*----- PROTECTED REGION END -----*/	//	TangoTestServerClass.h
@@ -429,7 +431,6 @@ class TangoTestServerClass : public Tango::DeviceClass
 {
 	/*----- PROTECTED REGION ID(TangoTestServerClass::Additional DServer data members) ENABLED START -----*/
 	/* clang-format on */
-	//	Add your own code
 	/* clang-format off */
 	/*----- PROTECTED REGION END -----*/	//	TangoTestServerClass::Additional DServer data members
 
