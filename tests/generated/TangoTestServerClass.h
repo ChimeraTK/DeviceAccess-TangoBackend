@@ -226,6 +226,47 @@ public:
 		{return (static_cast<TangoTestServer *>(dev))->is_StringWoScalar_allowed(ty);}
 };
 
+//	Attribute BooleanScalar class definition
+class BooleanScalarAttrib: public Tango::Attr
+{
+public:
+	BooleanScalarAttrib():Attr("BooleanScalar",
+			Tango::DEV_BOOLEAN, Tango::READ_WRITE) {};
+	~BooleanScalarAttrib() {};
+	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
+		{(static_cast<TangoTestServer *>(dev))->read_BooleanScalar(att);}
+	virtual void write(Tango::DeviceImpl *dev,Tango::WAttribute &att)
+		{(static_cast<TangoTestServer *>(dev))->write_BooleanScalar(att);}
+	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
+		{return (static_cast<TangoTestServer *>(dev))->is_BooleanScalar_allowed(ty);}
+};
+
+//	Attribute BooleanRoScalar class definition
+class BooleanRoScalarAttrib: public Tango::Attr
+{
+public:
+	BooleanRoScalarAttrib():Attr("BooleanRoScalar",
+			Tango::DEV_BOOLEAN, Tango::READ) {};
+	~BooleanRoScalarAttrib() {};
+	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
+		{(static_cast<TangoTestServer *>(dev))->read_BooleanRoScalar(att);}
+	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
+		{return (static_cast<TangoTestServer *>(dev))->is_BooleanRoScalar_allowed(ty);}
+};
+
+//	Attribute BooleanWoScalar class definition
+class BooleanWoScalarAttrib: public Tango::Attr
+{
+public:
+	BooleanWoScalarAttrib():Attr("BooleanWoScalar",
+			Tango::DEV_BOOLEAN, Tango::WRITE) {};
+	~BooleanWoScalarAttrib() {};
+	virtual void write(Tango::DeviceImpl *dev,Tango::WAttribute &att)
+		{(static_cast<TangoTestServer *>(dev))->write_BooleanWoScalar(att);}
+	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
+		{return (static_cast<TangoTestServer *>(dev))->is_BooleanWoScalar_allowed(ty);}
+};
+
 //	Attribute DoubleSpectrum class definition
 class DoubleSpectrumAttrib: public Tango::SpectrumAttr
 {

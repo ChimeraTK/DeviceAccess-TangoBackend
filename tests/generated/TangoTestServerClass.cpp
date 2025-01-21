@@ -624,6 +624,77 @@ void TangoTestServerClass::attribute_factory(std::vector<Tango::Attr *> &att_lis
 	stringwoscalar->set_memorized_init(true);
 	att_list.push_back(stringwoscalar);
 
+	//	Attribute : BooleanScalar
+	BooleanScalarAttrib	*booleanscalar = new BooleanScalarAttrib();
+	Tango::UserDefaultAttrProp	booleanscalar_prop;
+	//	description	not set for BooleanScalar
+	//	label	not set for BooleanScalar
+	//	unit	not set for BooleanScalar
+	//	standard_unit	not set for BooleanScalar
+	//	display_unit	not set for BooleanScalar
+	//	format	not set for BooleanScalar
+	//	max_value	not set for BooleanScalar
+	//	min_value	not set for BooleanScalar
+	//	max_alarm	not set for BooleanScalar
+	//	min_alarm	not set for BooleanScalar
+	//	max_warning	not set for BooleanScalar
+	//	min_warning	not set for BooleanScalar
+	//	delta_t	not set for BooleanScalar
+	//	delta_val	not set for BooleanScalar
+	booleanscalar->set_default_properties(booleanscalar_prop);
+	//	Not Polled
+	booleanscalar->set_disp_level(Tango::OPERATOR);
+	booleanscalar->set_memorized();
+	booleanscalar->set_memorized_init(true);
+	att_list.push_back(booleanscalar);
+
+	//	Attribute : BooleanRoScalar
+	BooleanRoScalarAttrib	*booleanroscalar = new BooleanRoScalarAttrib();
+	Tango::UserDefaultAttrProp	booleanroscalar_prop;
+	//	description	not set for BooleanRoScalar
+	//	label	not set for BooleanRoScalar
+	//	unit	not set for BooleanRoScalar
+	//	standard_unit	not set for BooleanRoScalar
+	//	display_unit	not set for BooleanRoScalar
+	//	format	not set for BooleanRoScalar
+	//	max_value	not set for BooleanRoScalar
+	//	min_value	not set for BooleanRoScalar
+	//	max_alarm	not set for BooleanRoScalar
+	//	min_alarm	not set for BooleanRoScalar
+	//	max_warning	not set for BooleanRoScalar
+	//	min_warning	not set for BooleanRoScalar
+	//	delta_t	not set for BooleanRoScalar
+	//	delta_val	not set for BooleanRoScalar
+	booleanroscalar->set_default_properties(booleanroscalar_prop);
+	//	Not Polled
+	booleanroscalar->set_disp_level(Tango::OPERATOR);
+	//	Not Memorized
+	att_list.push_back(booleanroscalar);
+
+	//	Attribute : BooleanWoScalar
+	BooleanWoScalarAttrib	*booleanwoscalar = new BooleanWoScalarAttrib();
+	Tango::UserDefaultAttrProp	booleanwoscalar_prop;
+	//	description	not set for BooleanWoScalar
+	//	label	not set for BooleanWoScalar
+	//	unit	not set for BooleanWoScalar
+	//	standard_unit	not set for BooleanWoScalar
+	//	display_unit	not set for BooleanWoScalar
+	//	format	not set for BooleanWoScalar
+	//	max_value	not set for BooleanWoScalar
+	//	min_value	not set for BooleanWoScalar
+	//	max_alarm	not set for BooleanWoScalar
+	//	min_alarm	not set for BooleanWoScalar
+	//	max_warning	not set for BooleanWoScalar
+	//	min_warning	not set for BooleanWoScalar
+	//	delta_t	not set for BooleanWoScalar
+	//	delta_val	not set for BooleanWoScalar
+	booleanwoscalar->set_default_properties(booleanwoscalar_prop);
+	//	Not Polled
+	booleanwoscalar->set_disp_level(Tango::OPERATOR);
+	booleanwoscalar->set_memorized();
+	booleanwoscalar->set_memorized_init(false);
+	att_list.push_back(booleanwoscalar);
+
 	//	Attribute : DoubleSpectrum
 	DoubleSpectrumAttrib	*doublespectrum = new DoubleSpectrumAttrib();
 	Tango::UserDefaultAttrProp	doublespectrum_prop;
@@ -644,6 +715,7 @@ void TangoTestServerClass::attribute_factory(std::vector<Tango::Attr *> &att_lis
 	doublespectrum->set_default_properties(doublespectrum_prop);
 	//	Not Polled
 	doublespectrum->set_disp_level(Tango::OPERATOR);
+	//	Not Memorized
 	att_list.push_back(doublespectrum);
 
 	//	Attribute : DoubleRoSpectrum
@@ -689,6 +761,7 @@ void TangoTestServerClass::attribute_factory(std::vector<Tango::Attr *> &att_lis
 	doublewospectrum->set_default_properties(doublewospectrum_prop);
 	//	Not Polled
 	doublewospectrum->set_disp_level(Tango::OPERATOR);
+	//	Not Memorized
 	att_list.push_back(doublewospectrum);
 
 	//	Attribute : FloatSpectrum
@@ -711,6 +784,7 @@ void TangoTestServerClass::attribute_factory(std::vector<Tango::Attr *> &att_lis
 	floatspectrum->set_default_properties(floatspectrum_prop);
 	//	Not Polled
 	floatspectrum->set_disp_level(Tango::OPERATOR);
+	//	Not Memorized
 	att_list.push_back(floatspectrum);
 
 	//	Attribute : FloatRoSpectrum
@@ -756,6 +830,7 @@ void TangoTestServerClass::attribute_factory(std::vector<Tango::Attr *> &att_lis
 	floatwospectrum->set_default_properties(floatwospectrum_prop);
 	//	Not Polled
 	floatwospectrum->set_disp_level(Tango::OPERATOR);
+	//	Not Memorized
 	att_list.push_back(floatwospectrum);
 
 	//	Attribute : IntSpectrum
@@ -778,6 +853,7 @@ void TangoTestServerClass::attribute_factory(std::vector<Tango::Attr *> &att_lis
 	intspectrum->set_default_properties(intspectrum_prop);
 	//	Not Polled
 	intspectrum->set_disp_level(Tango::OPERATOR);
+	//	Not Memorized
 	att_list.push_back(intspectrum);
 
 	//	Attribute : IntRoSpectrum
@@ -823,6 +899,7 @@ void TangoTestServerClass::attribute_factory(std::vector<Tango::Attr *> &att_lis
 	intwospectrum->set_default_properties(intwospectrum_prop);
 	//	Not Polled
 	intwospectrum->set_disp_level(Tango::OPERATOR);
+	//	Not Memorized
 	att_list.push_back(intwospectrum);
 
 	//	Attribute : StringSpectrum
@@ -845,6 +922,7 @@ void TangoTestServerClass::attribute_factory(std::vector<Tango::Attr *> &att_lis
 	stringspectrum->set_default_properties(stringspectrum_prop);
 	//	Not Polled
 	stringspectrum->set_disp_level(Tango::OPERATOR);
+	//	Not Memorized
 	att_list.push_back(stringspectrum);
 
 	//	Attribute : StringRoSpectrum
@@ -890,6 +968,8 @@ void TangoTestServerClass::attribute_factory(std::vector<Tango::Attr *> &att_lis
 	stringwospectrum->set_default_properties(stringwospectrum_prop);
 	//	Not Polled
 	stringwospectrum->set_disp_level(Tango::OPERATOR);
+
+
 	att_list.push_back(stringwospectrum);
 
 

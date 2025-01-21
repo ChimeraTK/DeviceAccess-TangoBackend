@@ -144,6 +144,7 @@ void ThreadedTangoServer::start() {
     args.resize(argv.size());
     std::transform(argv.begin(), argv.end(), args.begin(), [&](auto& s) { return s.c_str(); });
 
+    try {
     // Need to pass it down to something that usually takes argc, argv directly from main
     // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
     auto* tg = Tango::Util::init(int(args.size()), const_cast<char**>(args.data()));
@@ -152,7 +153,7 @@ void ThreadedTangoServer::start() {
     assert(devices.size() == 1);
 
     ourDevice = dynamic_cast<TangoTestServer_ns::TangoTestServer*>(devices[0]);
-    std::cout << devices.size() << std::endl;
+    assert(ourDevice != nullptr);
 
     auto callback = []() -> bool {
       auto shutdown = ThreadedTangoServer::shutdownRequested.load();
@@ -172,7 +173,11 @@ void ThreadedTangoServer::start() {
     }
 
     tg->server_run();
+    }
+    catch(Tango::DevFailed& ex) {
+      Tango::Except::print_exception(ex);
 
+  }
   });
   cv.wait(in, [&] { return threadRunning; });
 }
@@ -274,6 +279,7 @@ struct AllRegisterDefaults {
   using rawUserType = std::nullptr_t;
 
   static constexpr auto capabilities = TestCapabilities<>()
+                                           .enableTestCatalogue()
                                            .disableForceDataLossWrite()
                                            .disableAsyncReadInconsistency()
                                            .disableSwitchReadOnly()
@@ -332,17 +338,17 @@ struct ArrayDefaults : AllRegisterDefaults<DERIVED> {
   std::vector<std::vector<UserType>> getRemoteValue() {
     std::vector<UserType> val;
     for(size_t i = 0; i < derived->nElementsPerChannel(); ++i) {
-      val.push_back(ChimeraTK::numericToUserType<UserType>(derived->prop.value(i)));
+      val.push_back(ChimeraTK::numericToUserType<UserType>(derived->getValue(i)));
     }
     return {val};
   }
 
-  void setRemoteValue() {
+  template <typename REMOTE_TYPE>
+  void setRemoteValueImpl() {
     auto val = derived->template generateValue<typename DERIVED::minimumUserType>()[0];
     for(size_t i = 0; i < derived->nElementsPerChannel(); ++i) {
-      derived->prop.set_value(val[i], i);
+      derived->setValue(i, ChimeraTK::userTypeToNumeric<REMOTE_TYPE>(val[i]));
     }
-    //this->updateStamp();
   }
 };
 
@@ -358,22 +364,107 @@ struct RegSomeInt : ScalarDefaults<RegSomeInt> {
   minimumUserType getValue() { return ThreadedTangoServer::self->ourDevice->attr_IntScalar_read[0]; }
 };
 
+struct RegSomeRoInt : ScalarDefaults<RegSomeRoInt> {
+  std::string path() { return "IntRoScalar"; }
+  typedef int32_t minimumUserType;
+  int32_t increment{3};
+
+  static constexpr auto capabilities = ScalarDefaults<RegSomeInt>::capabilities.enableTestReadOnly();
+
+  void setValue(minimumUserType v) { ThreadedTangoServer::self->ourDevice->attr_IntRoScalar_read[0] = v; }
+
+  minimumUserType getValue() { return ThreadedTangoServer::self->ourDevice->attr_IntRoScalar_read[0]; }
+};
+
+struct RegSomeWoInt : ScalarDefaults<RegSomeWoInt> {
+  std::string path() { return "IntWoScalar"; }
+  typedef int32_t minimumUserType;
+  int32_t increment{3};
+
+  static constexpr auto capabilities = ScalarDefaults<RegSomeInt>::capabilities.enableTestWriteOnly();
+
+  void setValue(minimumUserType v) { ThreadedTangoServer::self->ourDevice->attr_IntWoScalar_read[0] = v; }
+
+  minimumUserType getValue() { return ThreadedTangoServer::self->ourDevice->attr_IntWoScalar_read[0]; }
+};
+
+struct RegSomeBool : ScalarDefaults<RegSomeBool> {
+  std::string path() { return "BooleanScalar"; }
+
+  typedef ChimeraTK::Boolean minimumUserType;
+
+  bool increment{false};
+
+  void setValue(minimumUserType v) { ThreadedTangoServer::self->ourDevice->attr_BooleanScalar_read[0] = v; }
+
+  minimumUserType getValue() { return ThreadedTangoServer::self->ourDevice->attr_BooleanScalar_read[0]; }
+};
+
+struct RegSomeRoBool : ScalarDefaults<RegSomeRoBool> {
+  std::string path() { return "BooleanRoScalar"; }
+
+  typedef ChimeraTK::Boolean minimumUserType;
+
+  bool increment{false};
+
+  static constexpr auto capabilities = ScalarDefaults<RegSomeInt>::capabilities.enableTestReadOnly();
+
+  void setValue(minimumUserType v) { ThreadedTangoServer::self->ourDevice->attr_BooleanRoScalar_read[0] = v; }
+
+  minimumUserType getValue() { return ThreadedTangoServer::self->ourDevice->attr_BooleanRoScalar_read[0]; }
+};
+
+struct RegSomeWoBool : ScalarDefaults<RegSomeWoBool> {
+  std::string path() { return "BooleanWoScalar"; }
+
+  typedef ChimeraTK::Boolean minimumUserType;
+
+  bool increment{false};
+
+  static constexpr auto capabilities = ScalarDefaults<RegSomeInt>::capabilities.enableTestWriteOnly();
+
+  void setValue(minimumUserType v) { ThreadedTangoServer::self->ourDevice->attr_BooleanRoScalar_read[0] = v; }
+
+  minimumUserType getValue() { return ThreadedTangoServer::self->ourDevice->attr_BooleanRoScalar_read[0]; }
+};
+
+struct RegSomeIntArray : ArrayDefaults<RegSomeIntArray> {
+  std::string path() { return "IntSpectrum"; }
+  size_t nElementsPerChannel() { return 10; }
+  typedef int32_t minimumUserType;
+  int32_t increment{12};
+
+  void setValue(int i, Tango::DevLong v) {
+    ThreadedTangoServer::self->ourDevice->attr_IntSpectrum_read[i] = v; }
+
+  void setRemoteValue() { setRemoteValueImpl<Tango::DevLong>(); }
+
+  Tango::DevLong getValue(int i) {
+    auto val = ThreadedTangoServer::self->ourDevice->attr_IntSpectrum_read[i];
+  return val;}
+};
+
 /**********************************************************************************************************************/
 
 BOOST_AUTO_TEST_CASE(unifiedBackendTest) {
-
-  auto ubt = ChimeraTK::UnifiedBackendTest<>().addRegister<RegSomeInt>();
-#if 0
+  auto ubt = ChimeraTK::UnifiedBackendTest<>()
+                 .addRegister<RegSomeInt>()
                  .addRegister<RegSomeRoInt>()
+                 .addRegister<RegSomeWoInt>()
+                 .addRegister<RegSomeBool>()
+                 .addRegister<RegSomeRoBool>()
+                 .addRegister<RegSomeWoBool>()
+                 .addRegister<RegSomeIntArray>()
+#if 0
                  .addRegister<RegSomeFloat>()
                  .addRegister<RegSomeDouble>()
                  .addRegister<RegSomeString>()
-                 .addRegister<RegSomeIntArray>()
                  .addRegister<RegSomeShortArray>()
                  .addRegister<RegSomeLongArray>()
                  .addRegister<RegSomeFloatArray>()
                  .addRegister<RegSomeDoubleArray>();
 #endif
+      ;
 
   ubt.runTests("(tango:" + ThreadedTangoServer::self->getClientUrl() + "?cacheFile=unifiedBackendTestCache.json)");
 }

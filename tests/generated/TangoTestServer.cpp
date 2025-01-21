@@ -70,6 +70,9 @@
 //  StringScalar      |  Tango::DevString	Scalar
 //  StringRoScalar    |  Tango::DevString	Scalar
 //  StringWoScalar    |  Tango::DevString	Scalar
+//  BooleanScalar     |  Tango::DevBoolean	Scalar
+//  BooleanRoScalar   |  Tango::DevBoolean	Scalar
+//  BooleanWoScalar   |  Tango::DevBoolean	Scalar
 //  DoubleSpectrum    |  Tango::DevDouble	Spectrum  ( max = 10)
 //  DoubleRoSpectrum  |  Tango::DevDouble	Spectrum  ( max = 10)
 //  DoubleWoSpectrum  |  Tango::DevDouble	Spectrum  ( max = 10)
@@ -145,26 +148,41 @@ void TangoTestServer::delete_device()
 	DEBUG_STREAM << "TangoTestServer::delete_device() " << device_name << std::endl;
 	/*----- PROTECTED REGION ID(TangoTestServer::delete_device) ENABLED START -----*/
 	/* clang-format on */
-	//	Delete device allocated objects
-	/* clang-format off */
+        for(int i = 0; i < StringSpectrumAttrib::X_DATA_SIZE; i++) {
+          Tango::string_free(attr_StringSpectrum_read[i]);
+        }
+        for(int i = 0; i < StringRoSpectrumAttrib::X_DATA_SIZE; i++) {
+          Tango::string_free(attr_StringRoSpectrum_read[i]);
+        }
+        for(int i = 0; i < StringWoSpectrumAttrib::X_DATA_SIZE; i++) {
+          Tango::string_free(attr_StringWoSpectrum_read[i]);
+        }
+        /* clang-format off */
 	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::delete_device
 	delete[] attr_DoubleScalar_read;
 	delete[] attr_DoubleRoScalar_read;
+	delete[] attr_DoubleWoScalar_read;
 	delete[] attr_FloatScalar_read;
 	delete[] attr_FloatRoScalar_read;
 	delete[] attr_FloatWoScalar_read;
 	delete[] attr_IntScalar_read;
 	delete[] attr_IntRoScalar_read;
+	delete[] attr_IntWoScalar_read;
 	delete[] attr_StringScalar_read;
 	delete[] attr_StringRoScalar_read;
 	delete[] attr_StringWoScalar_read;
+	delete[] attr_BooleanScalar_read;
+	delete[] attr_BooleanRoScalar_read;
+	delete[] attr_BooleanWoScalar_read;
 	delete[] attr_DoubleSpectrum_read;
 	delete[] attr_DoubleRoSpectrum_read;
+	delete[] attr_DoubleWoSpectrum_read;
 	delete[] attr_FloatSpectrum_read;
 	delete[] attr_FloatRoSpectrum_read;
 	delete[] attr_FloatWoSpectrum_read;
 	delete[] attr_IntSpectrum_read;
 	delete[] attr_IntRoSpectrum_read;
+	delete[] attr_IntWoSpectrum_read;
 	delete[] attr_StringSpectrum_read;
 	delete[] attr_StringRoSpectrum_read;
 	delete[] attr_StringWoSpectrum_read;
@@ -189,28 +207,71 @@ void TangoTestServer::init_device()
 
 	attr_DoubleScalar_read = new Tango::DevDouble[1];
 	attr_DoubleRoScalar_read = new Tango::DevDouble[1];
-	attr_FloatScalar_read = new Tango::DevFloat[1];
+        attr_DoubleWoScalar_read = new Tango::DevDouble[1];
+        attr_FloatScalar_read = new Tango::DevFloat[1];
 	attr_FloatRoScalar_read = new Tango::DevFloat[1];
 	attr_FloatWoScalar_read = new Tango::DevFloat[1];
 	attr_IntScalar_read = new Tango::DevLong[1];
 	attr_IntRoScalar_read = new Tango::DevLong[1];
+	attr_IntWoScalar_read = new Tango::DevLong[1];
 	attr_StringScalar_read = new Tango::DevString[1];
 	attr_StringRoScalar_read = new Tango::DevString[1];
 	attr_StringWoScalar_read = new Tango::DevString[1];
+	attr_BooleanScalar_read = new Tango::DevBoolean[1];
+	attr_BooleanRoScalar_read = new Tango::DevBoolean[1];
+	attr_BooleanWoScalar_read = new Tango::DevBoolean[1];
 	attr_DoubleSpectrum_read = new Tango::DevDouble[10];
 	attr_DoubleRoSpectrum_read = new Tango::DevDouble[10];
+	attr_DoubleWoSpectrum_read = new Tango::DevDouble[10];
 	attr_FloatSpectrum_read = new Tango::DevFloat[10];
-	attr_FloatRoSpectrum_read = new Tango::DevFloat[10];
-	attr_FloatWoSpectrum_read = new Tango::DevFloat[10];
-	attr_IntSpectrum_read = new Tango::DevLong[10];
+        attr_FloatRoSpectrum_read = new Tango::DevFloat[10];
+        attr_FloatWoSpectrum_read = new Tango::DevFloat[10];
+        attr_IntSpectrum_read = new Tango::DevLong[10];
 	attr_IntRoSpectrum_read = new Tango::DevLong[10];
-	attr_StringSpectrum_read = new Tango::DevString[10];
-	attr_StringRoSpectrum_read = new Tango::DevString[10];
-	attr_StringWoSpectrum_read = new Tango::DevString[10];
-	/*----- PROTECTED REGION ID(TangoTestServer::init_device) ENABLED START -----*/
+        attr_IntWoSpectrum_read = new Tango::DevLong[10];
+        attr_StringSpectrum_read = new Tango::DevString[10];
+        attr_StringRoSpectrum_read = new Tango::DevString[10];
+        attr_StringWoSpectrum_read = new Tango::DevString[10];
+        /*----- PROTECTED REGION ID(TangoTestServer::init_device) ENABLED START -----*/
 	/* clang-format on */
-	//	Initialize device
-	/* clang-format off */
+        *attr_DoubleScalar_read = 0.0;
+        *attr_DoubleRoScalar_read = 0.0;
+        *attr_DoubleWoScalar_read = 0.0;
+        *attr_FloatScalar_read = 0.0F;
+        *attr_FloatRoScalar_read = 0.0F;
+        *attr_FloatWoScalar_read = 0.0F;
+        *attr_IntScalar_read = 0;
+        *attr_IntRoScalar_read = 0;
+        *attr_IntWoScalar_read = 0;
+        *attr_FloatScalar_read = 0;
+        *attr_FloatRoScalar_read = 0.0F;
+        *attr_FloatWoScalar_read = 0.0F;
+        *attr_StringScalar_read = Tango::string_dup("");
+        *attr_StringRoScalar_read = Tango::string_dup("");
+        *attr_StringWoScalar_read = Tango::string_dup("");
+        *attr_BooleanScalar_read = false;
+        *attr_BooleanRoScalar_read = false;
+        *attr_BooleanWoScalar_read = false;
+
+        std::fill(attr_DoubleSpectrum_read, attr_DoubleSpectrum_read + 10, 0.0);
+        std::fill(attr_DoubleRoSpectrum_read, attr_DoubleRoSpectrum_read + 10, 0.0);
+        std::fill(attr_DoubleWoSpectrum_read, attr_DoubleWoSpectrum_read + 10, 0.0);
+        std::fill(attr_FloatSpectrum_read, attr_FloatSpectrum_read + 10, 0.0F);
+        std::fill(attr_FloatRoSpectrum_read, attr_FloatRoSpectrum_read + 10, 0.0F);
+        std::fill(attr_FloatWoSpectrum_read, attr_FloatWoSpectrum_read + 10, 0.0F);
+        for(int i = 0; i < StringSpectrumAttrib::X_DATA_SIZE; i++) {
+          attr_StringSpectrum_read[i] = Tango::string_dup("");
+        }
+        for(int i = 0; i < StringRoSpectrumAttrib::X_DATA_SIZE; i++) {
+          attr_StringRoSpectrum_read[i] = Tango::string_dup("");
+        }
+        for(int i = 0; i < StringWoSpectrumAttrib::X_DATA_SIZE; i++) {
+          attr_StringWoSpectrum_read[i] = Tango::string_dup("");
+        }
+        std::fill(attr_IntSpectrum_read, attr_IntSpectrum_read + 10, 0);
+        std::fill(attr_IntRoSpectrum_read, attr_IntRoSpectrum_read + 10, 0);
+        std::fill(attr_IntWoSpectrum_read, attr_IntWoSpectrum_read + 10, 0);
+        /* clang-format off */
 	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::init_device
 }
 
@@ -518,7 +579,7 @@ void TangoTestServer::write_IntWoScalar(Tango::WAttribute &attr)
 	attr.get_write_value(w_val);
 	/*----- PROTECTED REGION ID(TangoTestServer::write_IntWoScalar) ENABLED START -----*/
 	/* clang-format on */
-	//	Add your own code
+        attr_IntWoScalar_read[0] = w_val;
 	/* clang-format off */
 	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::write_IntWoScalar
 }
@@ -622,6 +683,86 @@ void TangoTestServer::write_StringWoScalar(Tango::WAttribute &attr)
 }
 //--------------------------------------------------------
 /**
+ *	Read attribute BooleanScalar related method
+ *
+ *
+ *	Data type:	Tango::DevBoolean
+ *	Attr type:	Scalar
+ */
+//--------------------------------------------------------
+void TangoTestServer::read_BooleanScalar(Tango::Attribute &attr)
+{
+	DEBUG_STREAM << "TangoTestServer::read_BooleanScalar(Tango::Attribute &attr) entering... " << std::endl;
+	/*----- PROTECTED REGION ID(TangoTestServer::read_BooleanScalar) ENABLED START -----*/
+	/* clang-format on */
+	//	Set the attribute value
+	attr.set_value(attr_BooleanScalar_read);
+	/* clang-format off */
+	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::read_BooleanScalar
+}
+//--------------------------------------------------------
+/**
+ *	Write attribute BooleanScalar related method
+ *
+ *
+ *	Data type:	Tango::DevBoolean
+ *	Attr type:	Scalar
+ */
+//--------------------------------------------------------
+void TangoTestServer::write_BooleanScalar(Tango::WAttribute &attr)
+{
+	DEBUG_STREAM << "TangoTestServer::write_BooleanScalar(Tango::WAttribute &attr) entering... " << std::endl;
+	//	Retrieve write value
+	Tango::DevBoolean	w_val;
+	attr.get_write_value(w_val);
+	/*----- PROTECTED REGION ID(TangoTestServer::write_BooleanScalar) ENABLED START -----*/
+	/* clang-format on */
+        *attr_BooleanScalar_read = w_val;
+	/* clang-format off */
+	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::write_BooleanScalar
+}
+//--------------------------------------------------------
+/**
+ *	Read attribute BooleanRoScalar related method
+ *
+ *
+ *	Data type:	Tango::DevBoolean
+ *	Attr type:	Scalar
+ */
+//--------------------------------------------------------
+void TangoTestServer::read_BooleanRoScalar(Tango::Attribute &attr)
+{
+	DEBUG_STREAM << "TangoTestServer::read_BooleanRoScalar(Tango::Attribute &attr) entering... " << std::endl;
+	/*----- PROTECTED REGION ID(TangoTestServer::read_BooleanRoScalar) ENABLED START -----*/
+	/* clang-format on */
+	//	Set the attribute value
+	attr.set_value(attr_BooleanRoScalar_read);
+	/* clang-format off */
+	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::read_BooleanRoScalar
+}
+//--------------------------------------------------------
+/**
+ *	Write attribute BooleanWoScalar related method
+ *
+ *
+ *	Data type:	Tango::DevBoolean
+ *	Attr type:	Scalar
+ */
+//--------------------------------------------------------
+void TangoTestServer::write_BooleanWoScalar(Tango::WAttribute &attr)
+{
+	DEBUG_STREAM << "TangoTestServer::write_BooleanWoScalar(Tango::WAttribute &attr) entering... " << std::endl;
+	//	Retrieve write value
+	Tango::DevBoolean	w_val;
+	attr.get_write_value(w_val);
+	/*----- PROTECTED REGION ID(TangoTestServer::write_BooleanWoScalar) ENABLED START -----*/
+	/* clang-format on */
+        *attr_BooleanWoScalar_read = w_val;
+        /* clang-format off */
+	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::write_BooleanWoScalar
+}
+//--------------------------------------------------------
+/**
  *	Read attribute DoubleSpectrum related method
  *
  *
@@ -652,7 +793,7 @@ void TangoTestServer::write_DoubleSpectrum(Tango::WAttribute &attr)
 {
 	DEBUG_STREAM << "TangoTestServer::write_DoubleSpectrum(Tango::WAttribute &attr) entering... " << std::endl;
 	//	Retrieve number of write values
-	int	w_length = attr.get_write_value_length();
+        //int	w_length = attr.get_write_value_length();
 
 	//	Retrieve pointer on write values (Do not delete !)
 	const Tango::DevDouble	*w_val;
@@ -695,7 +836,7 @@ void TangoTestServer::write_DoubleWoSpectrum(Tango::WAttribute &attr)
 {
 	DEBUG_STREAM << "TangoTestServer::write_DoubleWoSpectrum(Tango::WAttribute &attr) entering... " << std::endl;
 	//	Retrieve number of write values
-	int	w_length = attr.get_write_value_length();
+        //int	w_length = attr.get_write_value_length();
 
 	//	Retrieve pointer on write values (Do not delete !)
 	const Tango::DevDouble	*w_val;
@@ -738,7 +879,7 @@ void TangoTestServer::write_FloatSpectrum(Tango::WAttribute &attr)
 {
 	DEBUG_STREAM << "TangoTestServer::write_FloatSpectrum(Tango::WAttribute &attr) entering... " << std::endl;
 	//	Retrieve number of write values
-	int	w_length = attr.get_write_value_length();
+        //int	w_length = attr.get_write_value_length();
 
 	//	Retrieve pointer on write values (Do not delete !)
 	const Tango::DevFloat	*w_val;
@@ -800,7 +941,7 @@ void TangoTestServer::write_FloatWoSpectrum(Tango::WAttribute &attr)
 {
 	DEBUG_STREAM << "TangoTestServer::write_FloatWoSpectrum(Tango::WAttribute &attr) entering... " << std::endl;
 	//	Retrieve number of write values
-	int	w_length = attr.get_write_value_length();
+        //int	w_length = attr.get_write_value_length();
 
 	//	Retrieve pointer on write values (Do not delete !)
 	const Tango::DevFloat	*w_val;
@@ -843,14 +984,16 @@ void TangoTestServer::write_IntSpectrum(Tango::WAttribute &attr)
 {
 	DEBUG_STREAM << "TangoTestServer::write_IntSpectrum(Tango::WAttribute &attr) entering... " << std::endl;
 	//	Retrieve number of write values
-	int	w_length = attr.get_write_value_length();
+        int	w_length = attr.get_write_value_length();
 
 	//	Retrieve pointer on write values (Do not delete !)
 	const Tango::DevLong	*w_val;
 	attr.get_write_value(w_val);
 	/*----- PROTECTED REGION ID(TangoTestServer::write_IntSpectrum) ENABLED START -----*/
 	/* clang-format on */
-	//	Add your own code
+        for(int i = 0; i < w_length; i++) {
+          attr_IntSpectrum_read[i] = w_val[i];
+        }
 	/* clang-format off */
 	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::write_IntSpectrum
 }
@@ -886,7 +1029,7 @@ void TangoTestServer::write_IntWoSpectrum(Tango::WAttribute &attr)
 {
 	DEBUG_STREAM << "TangoTestServer::write_IntWoSpectrum(Tango::WAttribute &attr) entering... " << std::endl;
 	//	Retrieve number of write values
-	int	w_length = attr.get_write_value_length();
+        //int	w_length = attr.get_write_value_length();
 
 	//	Retrieve pointer on write values (Do not delete !)
 	const Tango::DevLong	*w_val;
@@ -929,7 +1072,7 @@ void TangoTestServer::write_StringSpectrum(Tango::WAttribute &attr)
 {
 	DEBUG_STREAM << "TangoTestServer::write_StringSpectrum(Tango::WAttribute &attr) entering... " << std::endl;
 	//	Retrieve number of write values
-	int	w_length = attr.get_write_value_length();
+        //int	w_length = attr.get_write_value_length();
 
 	//	Retrieve pointer on write values (Do not delete !)
 	const Tango::ConstDevString	*w_val;
@@ -991,7 +1134,7 @@ void TangoTestServer::write_StringWoSpectrum(Tango::WAttribute &attr)
 {
 	DEBUG_STREAM << "TangoTestServer::write_StringWoSpectrum(Tango::WAttribute &attr) entering... " << std::endl;
 	//	Retrieve number of write values
-	int	w_length = attr.get_write_value_length();
+        //int	w_length = attr.get_write_value_length();
 
 	//	Retrieve pointer on write values (Do not delete !)
 	const Tango::ConstDevString	*w_val;

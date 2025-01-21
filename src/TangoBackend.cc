@@ -100,21 +100,45 @@ namespace ChimeraTK {
 
     auto sharedThis = boost::static_pointer_cast<TangoBackend>(shared_from_this());
 
-    if(info.attributeInfo.data_format == Tango::AttrDataFormat::SCALAR) {
-      switch(info.attributeInfo.data_type) {
-        case Tango::DEV_LONG:
-          p.reset(new TangoBackendScalarRegisterAccessor<UserType, Tango::DevLong>(
-              sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
-          break;
-        default:
-          p.reset(new TangoBackendRegisterAccessor<UserType>(
-              sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
-          break;
+    switch(info.attributeInfo.data_format) {
+      case Tango::AttrDataFormat::SCALAR: {
+        switch(info.attributeInfo.data_type) {
+          case Tango::DEV_BOOLEAN:
+            p.reset(new TangoBackendScalarRegisterAccessor<UserType, Tango::DevBoolean>(
+                sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
+            break;
+          case Tango::DEV_LONG:
+            p.reset(new TangoBackendScalarRegisterAccessor<UserType, Tango::DevLong>(
+                sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
+            break;
+          default:
+            p.reset(new TangoBackendRegisterAccessor<UserType>(
+                sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
+            break;
+        }
+        break;
       }
-    } else {
-      p.reset(new TangoBackendRegisterAccessor<UserType>(
-          sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
+      case Tango::AttrDataFormat::SPECTRUM: {
+        switch(info.attributeInfo.data_type) {
+          case Tango::DEV_LONG:
+            p.reset(new TangoBackendSpectrumRegisterAccessor<UserType, Tango::DevLong>(
+                sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
+            break;
+          default:
+            p.reset(new TangoBackendRegisterAccessor<UserType>(
+                sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
+            break;
+        }
+        break;
+      }
+      case Tango::AttrDataFormat::IMAGE:
+        break;
+      case Tango::AttrDataFormat::FMT_UNKNOWN:
+      default:
+        throw ChimeraTK::logic_error(
+            "Broken Tango attribute database information. " + registerPathName + " does not come with a data format");
     }
+
     p->setExceptionBackend(shared_from_this());
     return p;
   }

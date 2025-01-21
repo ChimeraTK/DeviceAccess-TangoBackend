@@ -80,22 +80,29 @@ public:
 public:
 	Tango::DevDouble	*attr_DoubleScalar_read;
 	Tango::DevDouble	*attr_DoubleRoScalar_read;
-	Tango::DevFloat	*attr_FloatScalar_read;
+        Tango::DevDouble	*attr_DoubleWoScalar_read;
+        Tango::DevFloat	*attr_FloatScalar_read;
 	Tango::DevFloat	*attr_FloatRoScalar_read;
 	Tango::DevFloat	*attr_FloatWoScalar_read;
 	Tango::DevLong	*attr_IntScalar_read;
 	Tango::DevLong	*attr_IntRoScalar_read;
-	Tango::DevString	*attr_StringScalar_read;
+        Tango::DevLong	*attr_IntWoScalar_read;
+        Tango::DevString	*attr_StringScalar_read;
 	Tango::DevString	*attr_StringRoScalar_read;
 	Tango::DevString	*attr_StringWoScalar_read;
-	Tango::DevDouble	*attr_DoubleSpectrum_read;
+	Tango::DevBoolean	*attr_BooleanScalar_read;
+	Tango::DevBoolean	*attr_BooleanRoScalar_read;
+        Tango::DevBoolean	*attr_BooleanWoScalar_read;
+        Tango::DevDouble	*attr_DoubleSpectrum_read;
 	Tango::DevDouble	*attr_DoubleRoSpectrum_read;
-	Tango::DevFloat	*attr_FloatSpectrum_read;
+        Tango::DevDouble	*attr_DoubleWoSpectrum_read;
+        Tango::DevFloat	*attr_FloatSpectrum_read;
 	Tango::DevFloat	*attr_FloatRoSpectrum_read;
 	Tango::DevFloat	*attr_FloatWoSpectrum_read;
 	Tango::DevLong	*attr_IntSpectrum_read;
 	Tango::DevLong	*attr_IntRoSpectrum_read;
-	Tango::DevString	*attr_StringSpectrum_read;
+        Tango::DevLong	*attr_IntWoSpectrum_read;
+        Tango::DevString	*attr_StringSpectrum_read;
 	Tango::DevString	*attr_StringRoSpectrum_read;
 	Tango::DevString	*attr_StringWoSpectrum_read;
 
@@ -276,6 +283,34 @@ public:
 	virtual void read_StringWoScalar(Tango::Attribute &attr);
 	virtual void write_StringWoScalar(Tango::WAttribute &attr);
 	virtual bool is_StringWoScalar_allowed(Tango::AttReqType type);
+/**
+ *	Attribute BooleanScalar related methods
+ *
+ *
+ *	Data type:  Tango::DevBoolean
+ *	Attr type:	Scalar
+ */
+	virtual void read_BooleanScalar(Tango::Attribute &attr);
+	virtual void write_BooleanScalar(Tango::WAttribute &attr);
+	virtual bool is_BooleanScalar_allowed(Tango::AttReqType type);
+/**
+ *	Attribute BooleanRoScalar related methods
+ *
+ *
+ *	Data type:  Tango::DevBoolean
+ *	Attr type:	Scalar
+ */
+	virtual void read_BooleanRoScalar(Tango::Attribute &attr);
+	virtual bool is_BooleanRoScalar_allowed(Tango::AttReqType type);
+/**
+ *	Attribute BooleanWoScalar related methods
+ *
+ *
+ *	Data type:  Tango::DevBoolean
+ *	Attr type:	Scalar
+ */
+	virtual void write_BooleanWoScalar(Tango::WAttribute &attr);
+	virtual bool is_BooleanWoScalar_allowed(Tango::AttReqType type);
 /**
  *	Attribute DoubleSpectrum related methods
  *

@@ -282,6 +282,62 @@ bool TangoTestServer::is_StringWoScalar_allowed(TANGO_UNUSED(Tango::AttReqType t
 
 //--------------------------------------------------------
 /**
+ *	Method      : TangoTestServer::is_BooleanScalar_allowed()
+ * Description:  Execution allowed for BooleanScalar attribute
+ */
+//--------------------------------------------------------
+bool TangoTestServer::is_BooleanScalar_allowed(TANGO_UNUSED(Tango::AttReqType type))
+{
+	//	Not any excluded states for BooleanScalar attribute in Write access.
+	/*----- PROTECTED REGION ID(TangoTestServer::BooleanScalarStateAllowed_WRITE) ENABLED START -----*/
+	/* clang-format on */
+	/* clang-format off */
+	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::BooleanScalarStateAllowed_WRITE
+
+	//	Not any excluded states for BooleanScalar attribute in read access.
+	/*----- PROTECTED REGION ID(TangoTestServer::BooleanScalarStateAllowed_READ) ENABLED START -----*/
+	/* clang-format on */
+	/* clang-format off */
+	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::BooleanScalarStateAllowed_READ
+	return true;
+}
+
+//--------------------------------------------------------
+/**
+ *	Method      : TangoTestServer::is_BooleanRoScalar_allowed()
+ * Description:  Execution allowed for BooleanRoScalar attribute
+ */
+//--------------------------------------------------------
+bool TangoTestServer::is_BooleanRoScalar_allowed(TANGO_UNUSED(Tango::AttReqType type))
+{
+
+	//	Not any excluded states for BooleanRoScalar attribute in read access.
+	/*----- PROTECTED REGION ID(TangoTestServer::BooleanRoScalarStateAllowed_READ) ENABLED START -----*/
+	/* clang-format on */
+	/* clang-format off */
+	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::BooleanRoScalarStateAllowed_READ
+	return true;
+}
+
+//--------------------------------------------------------
+/**
+ *	Method      : TangoTestServer::is_BooleanWoScalar_allowed()
+ * Description:  Execution allowed for BooleanWoScalar attribute
+ */
+//--------------------------------------------------------
+bool TangoTestServer::is_BooleanWoScalar_allowed(TANGO_UNUSED(Tango::AttReqType type))
+{
+	//	Not any excluded states for BooleanWoScalar attribute in Write access.
+	/*----- PROTECTED REGION ID(TangoTestServer::BooleanWoScalarStateAllowed_WRITE) ENABLED START -----*/
+	/* clang-format on */
+	/* clang-format off */
+	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::BooleanWoScalarStateAllowed_WRITE
+
+	return true;
+}
+
+//--------------------------------------------------------
+/**
  *	Method      : TangoTestServer::is_DoubleSpectrum_allowed()
  * Description:  Execution allowed for DoubleSpectrum attribute
  */
