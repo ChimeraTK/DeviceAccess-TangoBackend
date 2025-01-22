@@ -42,7 +42,7 @@
 
 /**
  *  TangoTestServer class description:
- *    
+ *
  */
 
 //================================================================
@@ -619,7 +619,9 @@ void TangoTestServer::write_StringScalar(Tango::WAttribute &attr)
 	attr.get_write_value(w_val);
 	/*----- PROTECTED REGION ID(TangoTestServer::write_StringScalar) ENABLED START -----*/
 	/* clang-format on */
-	/* clang-format off */
+        // delete *attr_StringScalar_read;
+        *attr_StringScalar_read = w_val;
+        /* clang-format off */
 	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::write_StringScalar
 }
 //--------------------------------------------------------
@@ -641,25 +643,7 @@ void TangoTestServer::read_StringRoScalar(Tango::Attribute &attr)
 	/* clang-format off */
 	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::read_StringRoScalar
 }
-//--------------------------------------------------------
-/**
- *	Read attribute StringWoScalar related method
- *
- *
- *	Data type:	Tango::DevString
- *	Attr type:	Scalar
- */
-//--------------------------------------------------------
-void TangoTestServer::read_StringWoScalar(Tango::Attribute &attr)
-{
-	DEBUG_STREAM << "TangoTestServer::read_StringWoScalar(Tango::Attribute &attr) entering... " << std::endl;
-	/*----- PROTECTED REGION ID(TangoTestServer::read_StringWoScalar) ENABLED START -----*/
-	/* clang-format on */
-	//	Set the attribute value
-	attr.set_value(attr_StringWoScalar_read);
-	/* clang-format off */
-	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::read_StringWoScalar
-}
+
 //--------------------------------------------------------
 /**
  *	Write attribute StringWoScalar related method
@@ -677,8 +661,8 @@ void TangoTestServer::write_StringWoScalar(Tango::WAttribute &attr)
 	attr.get_write_value(w_val);
 	/*----- PROTECTED REGION ID(TangoTestServer::write_StringWoScalar) ENABLED START -----*/
 	/* clang-format on */
-	//	Add your own code
-	/* clang-format off */
+        *attr_StringWoScalar_read = w_val;
+        /* clang-format off */
 	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::write_StringWoScalar
 }
 //--------------------------------------------------------

@@ -5,13 +5,11 @@
 #define BOOST_TEST_MODULE testUnifiedBackendTest
 
 #include "TangoTestServer.h"
+#include <tango/tango.h>
 
 #include <ChimeraTK/UnifiedBackendTest.h>
 
 #include <boost/filesystem.hpp>
-
-
-#include <tango/tango.h>
 
 #include <chrono>
 #include <filesystem>
@@ -83,7 +81,7 @@ struct ThreadedTangoServer {
   static std::atomic<bool> shutdownRequested;
   static ThreadedTangoServer* self;
   static ThreadedTangoServer& instance() { return *self; }
-  TangoTestServer_ns::TangoTestServer *ourDevice;
+  TangoTestServer_ns::TangoTestServer* ourDevice{nullptr};
 };
 
 ThreadedTangoServer::ThreadedTangoServer(std::string setTestName, bool setVerbose)
@@ -145,39 +143,38 @@ void ThreadedTangoServer::start() {
     std::transform(argv.begin(), argv.end(), args.begin(), [&](auto& s) { return s.c_str(); });
 
     try {
-    // Need to pass it down to something that usually takes argc, argv directly from main
-    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
-    auto* tg = Tango::Util::init(int(args.size()), const_cast<char**>(args.data()));
-    tg->server_init(false);
-    auto devices = tg->get_device_list_by_class("TangoTestServer");
-    assert(devices.size() == 1);
+      // Need to pass it down to something that usually takes argc, argv directly from main
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
+      auto* tg = Tango::Util::init(int(args.size()), const_cast<char**>(args.data()));
+      tg->server_init(false);
+      auto devices = tg->get_device_list_by_class("TangoTestServer");
+      assert(devices.size() == 1);
 
-    ourDevice = dynamic_cast<TangoTestServer_ns::TangoTestServer*>(devices[0]);
-    assert(ourDevice != nullptr);
+      ourDevice = dynamic_cast<TangoTestServer_ns::TangoTestServer*>(devices[0]);
+      assert(ourDevice != nullptr);
 
-    auto callback = []() -> bool {
-      auto shutdown = ThreadedTangoServer::shutdownRequested.load();
-      if(shutdown) {
-        return true;
+      auto callback = []() -> bool {
+        auto shutdown = ThreadedTangoServer::shutdownRequested.load();
+        if(shutdown) {
+          return true;
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        return false;
+      };
+
+      tg->server_set_event_loop(callback);
+      {
+        std::lock_guard<std::mutex> lg(in_mtx);
+        threadRunning = true;
+        cv.notify_one();
       }
 
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
-      return false;
-    };
-
-    tg->server_set_event_loop(callback);
-    {
-      std::lock_guard<std::mutex> lg(in_mtx);
-      threadRunning = true;
-      cv.notify_one();
-    }
-
-    tg->server_run();
+      tg->server_run();
     }
     catch(Tango::DevFailed& ex) {
       Tango::Except::print_exception(ex);
-
-  }
+    }
   });
   cv.wait(in, [&] { return threadRunning; });
 }
@@ -260,8 +257,7 @@ ThreadedTangoServer& ThreadedTangoServer::overrideNames(const std::string& newNa
 
 std::atomic<bool> ThreadedTangoServer::shutdownRequested{false};
 
-
-ThreadedTangoServer *ThreadedTangoServer::self{nullptr};
+ThreadedTangoServer* ThreadedTangoServer::self{nullptr};
 BOOST_GLOBAL_FIXTURE(ThreadedTangoServer);
 
 /**********************************************************************************************************************/
@@ -294,7 +290,7 @@ struct AllRegisterDefaults {
 /**********************************************************************************************************************/
 
 template<typename DERIVED>
-struct ScalarDefaults : AllRegisterDefaults<DERIVED> {
+struct ScalarDefaultsFoo : AllRegisterDefaults<DERIVED> {
   using AllRegisterDefaults<DERIVED>::AllRegisterDefaults;
   using AllRegisterDefaults<DERIVED>::derived;
   size_t nElementsPerChannel() { return 1; }
@@ -304,6 +300,23 @@ struct ScalarDefaults : AllRegisterDefaults<DERIVED> {
     return {{ChimeraTK::numericToUserType<UserType>(static_cast<typename DERIVED::minimumUserType>(
         derived->template getRemoteValue<typename DERIVED::minimumUserType>()[0][0] + derived->increment))}};
   }
+
+  template<typename UserType>
+  std::vector<std::vector<UserType>> getRemoteValue() {
+    auto v = ChimeraTK::numericToUserType<UserType>(derived->getValue());
+    return {{v}};
+  }
+
+  void setRemoteValue() {
+    auto v = derived->template generateValue<typename DERIVED::minimumUserType>()[0][0];
+    derived->setValue(v);
+  }
+};
+
+template<typename DERIVED>
+struct ScalarDefaults : ScalarDefaultsFoo<DERIVED> {
+  using AllRegisterDefaults<DERIVED>::derived;
+  size_t nElementsPerChannel() { return 1; }
 
   template<typename UserType>
   std::vector<std::vector<UserType>> getRemoteValue() {
@@ -343,7 +356,7 @@ struct ArrayDefaults : AllRegisterDefaults<DERIVED> {
     return {val};
   }
 
-  template <typename REMOTE_TYPE>
+  template<typename REMOTE_TYPE>
   void setRemoteValueImpl() {
     auto val = derived->template generateValue<typename DERIVED::minimumUserType>()[0];
     for(size_t i = 0; i < derived->nElementsPerChannel(); ++i) {
@@ -428,20 +441,51 @@ struct RegSomeWoBool : ScalarDefaults<RegSomeWoBool> {
   minimumUserType getValue() { return ThreadedTangoServer::self->ourDevice->attr_BooleanRoScalar_read[0]; }
 };
 
+struct RegSomeString : ScalarDefaultsFoo<RegSomeString> {
+  std::string path() { return "StringScalar"; }
+
+  typedef std::string minimumUserType;
+
+  std::string increment;
+
+  void setValue(minimumUserType v) {
+    if(ThreadedTangoServer::self->ourDevice->attr_StringScalar_read[0] != nullptr) {
+      Tango::string_free(ThreadedTangoServer::self->ourDevice->attr_StringScalar_read[0]);
+    }
+
+    ThreadedTangoServer::self->ourDevice->attr_StringScalar_read[0] = Tango::string_dup(v.c_str());
+  }
+
+  template<typename UserType>
+  std::vector<std::vector<UserType>> generateValue() {
+    assert(false);
+  }
+
+  minimumUserType getValue() { return std::string(ThreadedTangoServer::self->ourDevice->attr_StringScalar_read[0]); }
+
+  size_t someValue{42};
+};
+
+template<>
+std::vector<std::vector<std::string>> RegSomeString::generateValue<std::string>() {
+  ++someValue;
+  return {{"This is a string: " + std::to_string(someValue)}};
+}
+
 struct RegSomeIntArray : ArrayDefaults<RegSomeIntArray> {
   std::string path() { return "IntSpectrum"; }
   size_t nElementsPerChannel() { return 10; }
   typedef int32_t minimumUserType;
   int32_t increment{12};
 
-  void setValue(int i, Tango::DevLong v) {
-    ThreadedTangoServer::self->ourDevice->attr_IntSpectrum_read[i] = v; }
+  void setValue(int i, Tango::DevLong v) { ThreadedTangoServer::self->ourDevice->attr_IntSpectrum_read[i] = v; }
 
   void setRemoteValue() { setRemoteValueImpl<Tango::DevLong>(); }
 
   Tango::DevLong getValue(int i) {
     auto val = ThreadedTangoServer::self->ourDevice->attr_IntSpectrum_read[i];
-  return val;}
+    return val;
+  }
 };
 
 /**********************************************************************************************************************/
@@ -454,6 +498,7 @@ BOOST_AUTO_TEST_CASE(unifiedBackendTest) {
                  .addRegister<RegSomeBool>()
                  .addRegister<RegSomeRoBool>()
                  .addRegister<RegSomeWoBool>()
+                 .addRegister<RegSomeString>()
                  .addRegister<RegSomeIntArray>()
 #if 0
                  .addRegister<RegSomeFloat>()

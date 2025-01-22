@@ -41,7 +41,7 @@ namespace ChimeraTK {
       throw ChimeraTK::logic_error("Missing mandatory parameter: cacheFile");
     }
 
-    return boost::shared_ptr<DeviceBackend>(new TangoBackend(address, cacheFile));
+    return boost::shared_ptr<DeviceBackend>(new TangoBackend(std::move(address), cacheFile));
   }
 
   TangoBackend::TangoBackend(std::string address, const std::string& cacheFile) : DeviceBackendImpl(), _address(std::move(address)) {
@@ -109,6 +109,10 @@ namespace ChimeraTK {
             break;
           case Tango::DEV_LONG:
             p.reset(new TangoBackendScalarRegisterAccessor<UserType, Tango::DevLong>(
+                sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
+            break;
+          case Tango::DEV_STRING:
+            p.reset(new TangoBackendStringScalarRegisterAccessor<UserType>(
                 sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
             break;
           default:

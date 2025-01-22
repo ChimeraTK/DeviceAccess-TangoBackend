@@ -18,7 +18,7 @@ namespace ChimeraTK {
         const std::string& registerPathName, size_t numberOfWords, size_t wordOffsetInRegister, AccessModeFlags flags)
     : NDRegisterAccessor<UserType>(registerPathName, flags), backend(std::move(backend_)),
       registerInfo(std::move(info)) {
-      auto actualLength = info.getNumberOfElements();
+      auto actualLength = registerInfo.getNumberOfElements();
       auto elementOffset = wordOffsetInRegister;
       auto nElements = numberOfWords;
 
@@ -62,8 +62,6 @@ namespace ChimeraTK {
         throw ChimeraTK::logic_error("Try to write read-only register \"" + registerInfo.getRegisterName() + "\".");
       }
     }
-
-    const std::type_info& getValueType() { return typeid(UserType); }
 
     std::vector<boost::shared_ptr<TransferElement>> getHardwareAccessingElements() override {
       return {boost::enable_shared_from_this<TransferElement>::shared_from_this()};
@@ -122,13 +120,14 @@ namespace ChimeraTK {
   class TangoBackendScalarRegisterAccessor : public TangoBackendRegisterAccessor<UserType> {
     using TangoBackendRegisterAccessor<UserType>::TangoBackendRegisterAccessor;
 
-    void doPreWrite(TransferType type, VersionNumber version) {
+    void doPreWrite(TransferType type, VersionNumber version) override {
       TangoBackendRegisterAccessor<UserType>::doPreWrite(type, version);
       auto value = ChimeraTK::userTypeToNumeric<TangoType, UserType>(this->buffer_2D[0][0]);
+
       this->writeAttribute = Tango::DeviceAttribute(this->registerInfo.attributeInfo.name, value);
     }
 
-    void doPostRead(TransferType type, bool hasNewData) {
+    void doPostRead(TransferType type, bool hasNewData) override {
       TangoBackendRegisterAccessor<UserType>::doPostRead(type, hasNewData);
       if(!hasNewData) {
         return;
@@ -143,32 +142,72 @@ namespace ChimeraTK {
     }
   };
 
-  template<typename UserType, typename TangoType>
-  class TangoBackendSpectrumRegisterAccessor : public TangoBackendRegisterAccessor<UserType> {
+  template<typename UserType>
+  class TangoBackendStringScalarRegisterAccessor : public TangoBackendRegisterAccessor<UserType> {
     using TangoBackendRegisterAccessor<UserType>::TangoBackendRegisterAccessor;
 
-    void doPreWrite(TransferType type, VersionNumber version) {
+    void doPreWrite(TransferType type, VersionNumber version) override {
       TangoBackendRegisterAccessor<UserType>::doPreWrite(type, version);
-      std::vector<TangoType> t(10, 0);
-      for (unsigned int i = 0; i < this->registerInfo.getNumberOfElements(); i++) {
-        t[i] = ChimeraTK::userTypeToNumeric<TangoType, UserType>(this->buffer_2D[0][i]);
+
+      std::string value;
+
+      if constexpr(std::is_same_v<std::string, UserType>) {
+        value = this->buffer_2D[0][0];
       }
-      this->writeAttribute = Tango::DeviceAttribute(this->registerInfo.attributeInfo.name, t);
+      else {
+        auto intermediateString = ChimeraTK::userTypeToUserType<std::string, UserType>(this->buffer_2D[0][0]);
+        value = intermediateString;
+      }
+
+      this->writeAttribute = Tango::DeviceAttribute(this->registerInfo.attributeInfo.name, value);
     }
 
-    void doPostRead(TransferType type, bool hasNewData) {
+    void doPostRead(TransferType type, bool hasNewData) override {
       TangoBackendRegisterAccessor<UserType>::doPostRead(type, hasNewData);
       if(!hasNewData) {
         return;
       }
 
+      std::string value;
+      this->attr >> value;
 
+      if constexpr(std::is_same_v<std::string, UserType>) {
+        this->buffer_2D[0][0] = std::move(value);
+      }
+      else {
+        this->buffer_2D[0][0] = ChimeraTK::userTypeToUserType<UserType, std::string>(value);
+      }
+
+      // FIXME: We currently have no means of correlating data from Tango, so everything gets a new version number
+      TransferElement::_versionNumber = {};
+    }
+  };
+
+  template<typename UserType, typename TangoType>
+  class TangoBackendSpectrumRegisterAccessor : public TangoBackendRegisterAccessor<UserType> {
+    using TangoBackendRegisterAccessor<UserType>::TangoBackendRegisterAccessor;
+
+    void doPreWrite(TransferType type, VersionNumber version) override {
+      TangoBackendRegisterAccessor<UserType>::doPreWrite(type, version);
+      std::vector<TangoType> t(10, 0);
+      for(unsigned int i = 0; i < this->registerInfo.getNumberOfElements(); i++) {
+        t[i] = ChimeraTK::userTypeToNumeric<TangoType, UserType>(this->buffer_2D[0][i]);
+      }
+
+      this->writeAttribute = Tango::DeviceAttribute(this->registerInfo.attributeInfo.name, t);
+    }
+
+    void doPostRead(TransferType type, bool hasNewData) override {
+      TangoBackendRegisterAccessor<UserType>::doPostRead(type, hasNewData);
+      if(!hasNewData) {
+        return;
+      }
 
       std::vector<TangoType> value;
       this->attr >> value;
       auto length = std::min(this->registerInfo.getNumberOfElements(), static_cast<unsigned int>(value.size()));
 
-      for (unsigned int i = 0; i < length; i++) {
+      for(unsigned int i = 0; i < length; i++) {
         this->buffer_2D[0][i] = ChimeraTK::numericToUserType<UserType>(value[i]);
       }
 
