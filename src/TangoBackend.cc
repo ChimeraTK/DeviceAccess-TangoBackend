@@ -101,36 +101,23 @@ namespace ChimeraTK {
     auto sharedThis = boost::static_pointer_cast<TangoBackend>(shared_from_this());
 
     switch(info.attributeInfo.data_format) {
+      case Tango::AttrDataFormat::SPECTRUM:
       case Tango::AttrDataFormat::SCALAR: {
         switch(info.attributeInfo.data_type) {
           case Tango::DEV_BOOLEAN:
-            p.reset(new TangoBackendScalarRegisterAccessor<UserType, Tango::DevBoolean>(
+            p.reset(new TangoBackendRegisterAccessor<UserType, Tango::DevBoolean>(
                 sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
             break;
           case Tango::DEV_LONG:
-            p.reset(new TangoBackendScalarRegisterAccessor<UserType, Tango::DevLong>(
+            p.reset(new TangoBackendRegisterAccessor<UserType, Tango::DevLong>(
                 sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
             break;
           case Tango::DEV_STRING:
-            p.reset(new TangoBackendStringScalarRegisterAccessor<UserType>(
+            p.reset(new TangoBackendRegisterAccessor<UserType, std::string>(
                 sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
             break;
           default:
-            p.reset(new TangoBackendRegisterAccessor<UserType>(
-                sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
-            break;
-        }
-        break;
-      }
-      case Tango::AttrDataFormat::SPECTRUM: {
-        switch(info.attributeInfo.data_type) {
-          case Tango::DEV_LONG:
-            p.reset(new TangoBackendSpectrumRegisterAccessor<UserType, Tango::DevLong>(
-                sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
-            break;
-          default:
-            p.reset(new TangoBackendRegisterAccessor<UserType>(
-                sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
+            throw ChimeraTK::logic_error("Unsupported Tango type " + std::to_string(info.attributeInfo.data_type));
             break;
         }
         break;

@@ -1056,14 +1056,19 @@ void TangoTestServer::write_StringSpectrum(Tango::WAttribute &attr)
 {
 	DEBUG_STREAM << "TangoTestServer::write_StringSpectrum(Tango::WAttribute &attr) entering... " << std::endl;
 	//	Retrieve number of write values
-        //int	w_length = attr.get_write_value_length();
+        int	w_length = attr.get_write_value_length();
 
 	//	Retrieve pointer on write values (Do not delete !)
 	const Tango::ConstDevString	*w_val;
 	attr.get_write_value(w_val);
 	/*----- PROTECTED REGION ID(TangoTestServer::write_StringSpectrum) ENABLED START -----*/
 	/* clang-format on */
-	//	Add your own code
+        for(int i = 0; i < w_length; i++) {
+          if(attr_StringSpectrum_read[i] != nullptr) {
+            Tango::string_free(attr_StringSpectrum_read[i]);
+          }
+          attr_StringSpectrum_read[i] = Tango::string_dup(w_val[i]);
+        }
 	/* clang-format off */
 	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::write_StringSpectrum
 }

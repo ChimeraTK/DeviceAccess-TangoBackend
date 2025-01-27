@@ -290,7 +290,7 @@ struct AllRegisterDefaults {
 /**********************************************************************************************************************/
 
 template<typename DERIVED>
-struct ScalarDefaultsFoo : AllRegisterDefaults<DERIVED> {
+struct ScalarDefaultsBase : AllRegisterDefaults<DERIVED> {
   using AllRegisterDefaults<DERIVED>::AllRegisterDefaults;
   using AllRegisterDefaults<DERIVED>::derived;
   size_t nElementsPerChannel() { return 1; }
@@ -314,7 +314,7 @@ struct ScalarDefaultsFoo : AllRegisterDefaults<DERIVED> {
 };
 
 template<typename DERIVED>
-struct ScalarDefaults : ScalarDefaultsFoo<DERIVED> {
+struct ScalarDefaults : ScalarDefaultsBase<DERIVED> {
   using AllRegisterDefaults<DERIVED>::derived;
   size_t nElementsPerChannel() { return 1; }
 
@@ -360,7 +360,7 @@ struct ArrayDefaults : AllRegisterDefaults<DERIVED> {
   void setRemoteValueImpl() {
     auto val = derived->template generateValue<typename DERIVED::minimumUserType>()[0];
     for(size_t i = 0; i < derived->nElementsPerChannel(); ++i) {
-      derived->setValue(i, ChimeraTK::userTypeToNumeric<REMOTE_TYPE>(val[i]));
+      derived->setValue(i, ChimeraTK::userTypeToUserType<REMOTE_TYPE, typename DERIVED::minimumUserType>(val[i]));
     }
   }
 };
@@ -441,7 +441,7 @@ struct RegSomeWoBool : ScalarDefaults<RegSomeWoBool> {
   minimumUserType getValue() { return ThreadedTangoServer::self->ourDevice->attr_BooleanRoScalar_read[0]; }
 };
 
-struct RegSomeString : ScalarDefaultsFoo<RegSomeString> {
+struct RegSomeString : ScalarDefaults<RegSomeString> {
   std::string path() { return "StringScalar"; }
 
   typedef std::string minimumUserType;
@@ -488,6 +488,50 @@ struct RegSomeIntArray : ArrayDefaults<RegSomeIntArray> {
   }
 };
 
+struct RegSomeStringArray : ArrayDefaults<RegSomeStringArray> {
+  using ArrayDefaults<RegSomeStringArray>::generateValue;
+
+  std::string path() { return "StringSpectrum"; }
+  size_t nElementsPerChannel() { return 10; }
+  using minimumUserType = std::string;
+  int32_t increment{12};
+
+  void setValue(int i, std::string v) {
+    if(ThreadedTangoServer::self->ourDevice->attr_StringSpectrum_read[i] != nullptr) {
+      Tango::string_free(ThreadedTangoServer::self->ourDevice->attr_StringSpectrum_read[i]);
+    }
+
+    ThreadedTangoServer::self->ourDevice->attr_StringSpectrum_read[i] = Tango::string_dup(v.c_str());
+  }
+
+  void setRemoteValue() { setRemoteValueImpl<std::string>(); }
+
+  std::string getValue(int i) {
+    auto val = ThreadedTangoServer::self->ourDevice->attr_StringSpectrum_read[i];
+    return val;
+  }
+
+  template<typename UserType>
+  std::vector<std::vector<UserType>> generateValue() {
+    assert(false);
+  }
+
+  size_t someValue{23};
+};
+
+template<>
+std::vector<std::vector<std::string>> RegSomeStringArray::generateValue<std::string>() {
+  std::vector<std::string> value;
+  ++someValue;
+
+  std::vector<std::string> val;
+  for(size_t i = 0; i < derived->nElementsPerChannel(); ++i) {
+    val.push_back("This is a string " + std::to_string(someValue + (i + 1)));
+    ++someValue;
+  }
+  return {val};
+}
+
 /**********************************************************************************************************************/
 
 BOOST_AUTO_TEST_CASE(unifiedBackendTest) {
@@ -500,6 +544,7 @@ BOOST_AUTO_TEST_CASE(unifiedBackendTest) {
                  .addRegister<RegSomeWoBool>()
                  .addRegister<RegSomeString>()
                  .addRegister<RegSomeIntArray>()
+                 .addRegister<RegSomeStringArray>()
 #if 0
                  .addRegister<RegSomeFloat>()
                  .addRegister<RegSomeDouble>()

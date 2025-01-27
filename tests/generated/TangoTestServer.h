@@ -53,7 +53,7 @@
 
 /**
  *  TangoTestServer class description:
- *    
+ *
  */
 
 
@@ -280,7 +280,6 @@ public:
  *	Data type:  Tango::DevString
  *	Attr type:	Scalar
  */
-	virtual void read_StringWoScalar(Tango::Attribute &attr);
 	virtual void write_StringWoScalar(Tango::WAttribute &attr);
 	virtual bool is_StringWoScalar_allowed(Tango::AttReqType type);
 /**

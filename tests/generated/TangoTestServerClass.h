@@ -218,8 +218,6 @@ public:
 	StringWoScalarAttrib():Attr("StringWoScalar",
 			Tango::DEV_STRING, Tango::READ_WRITE) {};
 	~StringWoScalarAttrib() {};
-	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
-		{(static_cast<TangoTestServer *>(dev))->read_StringWoScalar(att);}
 	virtual void write(Tango::DeviceImpl *dev,Tango::WAttribute &att)
 		{(static_cast<TangoTestServer *>(dev))->write_StringWoScalar(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
