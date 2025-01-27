@@ -45,7 +45,10 @@ namespace ChimeraTK {
   }
 
   TangoBackend::TangoBackend(std::string address, const std::string& cacheFile) : DeviceBackendImpl(), _address(std::move(address)) {
-    _address.replace(_address.find("%23"), 3, "#");
+    auto it = _address.find("%23");
+    if(it != std::string::npos) {
+      _address.replace(it, 3, "#");
+    }
     _registerCatalogue = OfflineCache(cacheFile).read();
     FILL_VIRTUAL_FUNCTION_TEMPLATE_VTABLE(getRegisterAccessor_impl);
   }
