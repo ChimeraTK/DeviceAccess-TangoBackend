@@ -271,7 +271,7 @@ struct AllRegisterDefaults {
   ChimeraTK::AccessModeFlags supportedFlags() { return {}; }
   size_t nChannels() { return 1; }
   size_t writeQueueLength() { return std::numeric_limits<size_t>::max(); }
-  size_t nRuntimeErrorCases() { return 0; }
+  size_t nRuntimeErrorCases() { return 1; }
   using rawUserType = std::nullptr_t;
 
   static constexpr auto capabilities = TestCapabilities<>()
@@ -282,9 +282,7 @@ struct AllRegisterDefaults {
                                            .disableSwitchWriteOnly();
 
   void setForceRuntimeError(bool enable, size_t) {
-    if(enable) {
-    }
-  }
+    ThreadedTangoServer::self->ourDevice->runtimeError.store(enable); }
 };
 
 /**********************************************************************************************************************/

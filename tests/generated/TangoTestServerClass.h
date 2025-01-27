@@ -52,6 +52,40 @@ namespace TangoTestServer_ns
 /*----- PROTECTED REGION ID(TangoTestServerClass::classes for dynamic creation) ENABLED START -----*/
 /* clang-format on */
 
+class ExceptionAttribute : public Tango::Attr {
+ public:
+  using Tango ::Attr::Attr;
+
+  void read(Tango::DeviceImpl* dev, [[maybe_unused]] Tango::Attribute& att) override {
+    if((static_cast<TangoTestServer*>(dev))->runtimeError.load()) {
+      Tango::Except::throw_exception("Exception test", "Requested exception", "Yes, really");
+    }
+  }
+
+  void write(Tango::DeviceImpl* dev, [[maybe_unused]] Tango::WAttribute& att) override {
+    if((static_cast<TangoTestServer*>(dev))->runtimeError.load()) {
+      Tango::Except::throw_exception("Exception test", "Requested exception", "Yes, really");
+    }
+  }
+};
+
+class ExceptionSpectrumAttribute : public Tango::SpectrumAttr {
+ public:
+  using Tango::SpectrumAttr::SpectrumAttr;
+
+  void read(Tango::DeviceImpl* dev, [[maybe_unused]] Tango::Attribute& att) override {
+    if((static_cast<TangoTestServer*>(dev))->runtimeError.load()) {
+      Tango::Except::throw_exception("Exception test", "Requested exception", "Yes, really");
+    }
+  }
+
+  void write(Tango::DeviceImpl* dev, [[maybe_unused]] Tango::WAttribute& att) override {
+    if((static_cast<TangoTestServer*>(dev))->runtimeError.load()) {
+      Tango::Except::throw_exception("Exception test", "Requested exception", "Yes, really");
+    }
+  }
+};
+
 /* clang-format off */
 /*----- PROTECTED REGION END -----*/	//	TangoTestServerClass::classes for dynamic creation
 
@@ -59,400 +93,400 @@ namespace TangoTestServer_ns
 //	Define classes for attributes
 //=========================================
 //	Attribute DoubleScalar class definition
-class DoubleScalarAttrib: public Tango::Attr
+class DoubleScalarAttrib: public ExceptionAttribute
 {
 public:
-	DoubleScalarAttrib():Attr("DoubleScalar",
+	DoubleScalarAttrib():ExceptionAttribute("DoubleScalar",
 			Tango::DEV_DOUBLE, Tango::READ_WRITE) {};
-	~DoubleScalarAttrib() {};
+	~DoubleScalarAttrib() = default;
 	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
-		{(static_cast<TangoTestServer *>(dev))->read_DoubleScalar(att);}
+		{ExceptionAttribute::read(dev, att); (static_cast<TangoTestServer *>(dev))->read_DoubleScalar(att);}
 	virtual void write(Tango::DeviceImpl *dev,Tango::WAttribute &att)
-		{(static_cast<TangoTestServer *>(dev))->write_DoubleScalar(att);}
+		{ExceptionAttribute::write(dev, att); (static_cast<TangoTestServer *>(dev))->write_DoubleScalar(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
 		{return (static_cast<TangoTestServer *>(dev))->is_DoubleScalar_allowed(ty);}
 };
 
 //	Attribute DoubleRoScalar class definition
-class DoubleRoScalarAttrib: public Tango::Attr
+class DoubleRoScalarAttrib: public ExceptionAttribute
 {
 public:
-	DoubleRoScalarAttrib():Attr("DoubleRoScalar",
+	DoubleRoScalarAttrib():ExceptionAttribute("DoubleRoScalar",
 			Tango::DEV_DOUBLE, Tango::READ) {};
 	~DoubleRoScalarAttrib() {};
 	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
-		{(static_cast<TangoTestServer *>(dev))->read_DoubleRoScalar(att);}
+		{ExceptionAttribute::read(dev, att); (static_cast<TangoTestServer *>(dev))->read_DoubleRoScalar(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
 		{return (static_cast<TangoTestServer *>(dev))->is_DoubleRoScalar_allowed(ty);}
 };
 
 //	Attribute DoubleWoScalar class definition
-class DoubleWoScalarAttrib: public Tango::Attr
+class DoubleWoScalarAttrib: public ExceptionAttribute
 {
 public:
-	DoubleWoScalarAttrib():Attr("DoubleWoScalar",
+	DoubleWoScalarAttrib():ExceptionAttribute("DoubleWoScalar",
 			Tango::DEV_DOUBLE, Tango::WRITE) {};
 	~DoubleWoScalarAttrib() {};
 	virtual void write(Tango::DeviceImpl *dev,Tango::WAttribute &att)
-		{(static_cast<TangoTestServer *>(dev))->write_DoubleWoScalar(att);}
+		{ExceptionAttribute::write(dev, att); (static_cast<TangoTestServer *>(dev))->write_DoubleWoScalar(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
 		{return (static_cast<TangoTestServer *>(dev))->is_DoubleWoScalar_allowed(ty);}
 };
 
 //	Attribute FloatScalar class definition
-class FloatScalarAttrib: public Tango::Attr
+class FloatScalarAttrib: public ExceptionAttribute
 {
 public:
-	FloatScalarAttrib():Attr("FloatScalar",
+	FloatScalarAttrib():ExceptionAttribute("FloatScalar",
 			Tango::DEV_FLOAT, Tango::READ_WRITE) {};
 	~FloatScalarAttrib() {};
 	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
-		{(static_cast<TangoTestServer *>(dev))->read_FloatScalar(att);}
+		{ExceptionAttribute::read(dev, att); (static_cast<TangoTestServer *>(dev))->read_FloatScalar(att);}
 	virtual void write(Tango::DeviceImpl *dev,Tango::WAttribute &att)
-		{(static_cast<TangoTestServer *>(dev))->write_FloatScalar(att);}
+		{ExceptionAttribute::write(dev, att); (static_cast<TangoTestServer *>(dev))->write_FloatScalar(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
 		{return (static_cast<TangoTestServer *>(dev))->is_FloatScalar_allowed(ty);}
 };
 
 //	Attribute FloatRoScalar class definition
-class FloatRoScalarAttrib: public Tango::Attr
+class FloatRoScalarAttrib: public ExceptionAttribute
 {
 public:
-	FloatRoScalarAttrib():Attr("FloatRoScalar",
+	FloatRoScalarAttrib():ExceptionAttribute("FloatRoScalar",
 			Tango::DEV_FLOAT, Tango::READ) {};
 	~FloatRoScalarAttrib() {};
 	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
-		{(static_cast<TangoTestServer *>(dev))->read_FloatRoScalar(att);}
+		{ExceptionAttribute::read(dev, att); (static_cast<TangoTestServer *>(dev))->read_FloatRoScalar(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
 		{return (static_cast<TangoTestServer *>(dev))->is_FloatRoScalar_allowed(ty);}
 };
 
 //	Attribute FloatWoScalar class definition
-class FloatWoScalarAttrib: public Tango::Attr
+class FloatWoScalarAttrib: public ExceptionAttribute
 {
 public:
-	FloatWoScalarAttrib():Attr("FloatWoScalar",
+	FloatWoScalarAttrib():ExceptionAttribute("FloatWoScalar",
 			Tango::DEV_FLOAT, Tango::READ_WRITE) {};
 	~FloatWoScalarAttrib() {};
 	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
-		{(static_cast<TangoTestServer *>(dev))->read_FloatWoScalar(att);}
+		{ExceptionAttribute::read(dev, att); (static_cast<TangoTestServer *>(dev))->read_FloatWoScalar(att);}
 	virtual void write(Tango::DeviceImpl *dev,Tango::WAttribute &att)
-		{(static_cast<TangoTestServer *>(dev))->write_FloatWoScalar(att);}
+		{ExceptionAttribute::write(dev, att); (static_cast<TangoTestServer *>(dev))->write_FloatWoScalar(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
 		{return (static_cast<TangoTestServer *>(dev))->is_FloatWoScalar_allowed(ty);}
 };
 
 //	Attribute IntScalar class definition
-class IntScalarAttrib: public Tango::Attr
+class IntScalarAttrib: public ExceptionAttribute
 {
 public:
-	IntScalarAttrib():Attr("IntScalar",
+	IntScalarAttrib():ExceptionAttribute("IntScalar",
 			Tango::DEV_LONG, Tango::READ_WRITE) {};
 	~IntScalarAttrib() {};
 	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
-		{(static_cast<TangoTestServer *>(dev))->read_IntScalar(att);}
+		{ExceptionAttribute::read(dev, att); (static_cast<TangoTestServer *>(dev))->read_IntScalar(att);}
 	virtual void write(Tango::DeviceImpl *dev,Tango::WAttribute &att)
-		{(static_cast<TangoTestServer *>(dev))->write_IntScalar(att);}
+		{ExceptionAttribute::write(dev, att); (static_cast<TangoTestServer *>(dev))->write_IntScalar(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
 		{return (static_cast<TangoTestServer *>(dev))->is_IntScalar_allowed(ty);}
 };
 
 //	Attribute IntRoScalar class definition
-class IntRoScalarAttrib: public Tango::Attr
+class IntRoScalarAttrib: public ExceptionAttribute
 {
 public:
-	IntRoScalarAttrib():Attr("IntRoScalar",
+	IntRoScalarAttrib():ExceptionAttribute("IntRoScalar",
 			Tango::DEV_LONG, Tango::READ) {};
 	~IntRoScalarAttrib() {};
 	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
-		{(static_cast<TangoTestServer *>(dev))->read_IntRoScalar(att);}
+		{ExceptionAttribute::read(dev, att); (static_cast<TangoTestServer *>(dev))->read_IntRoScalar(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
 		{return (static_cast<TangoTestServer *>(dev))->is_IntRoScalar_allowed(ty);}
 };
 
 //	Attribute IntWoScalar class definition
-class IntWoScalarAttrib: public Tango::Attr
+class IntWoScalarAttrib: public ExceptionAttribute
 {
 public:
-	IntWoScalarAttrib():Attr("IntWoScalar",
+	IntWoScalarAttrib():ExceptionAttribute("IntWoScalar",
 			Tango::DEV_LONG, Tango::WRITE) {};
 	~IntWoScalarAttrib() {};
 	virtual void write(Tango::DeviceImpl *dev,Tango::WAttribute &att)
-		{(static_cast<TangoTestServer *>(dev))->write_IntWoScalar(att);}
+		{ExceptionAttribute::write(dev, att); (static_cast<TangoTestServer *>(dev))->write_IntWoScalar(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
 		{return (static_cast<TangoTestServer *>(dev))->is_IntWoScalar_allowed(ty);}
 };
 
 //	Attribute StringScalar class definition
-class StringScalarAttrib: public Tango::Attr
+class StringScalarAttrib: public ExceptionAttribute
 {
 public:
-	StringScalarAttrib():Attr("StringScalar",
+	StringScalarAttrib():ExceptionAttribute("StringScalar",
 			Tango::DEV_STRING, Tango::READ_WRITE) {};
 	~StringScalarAttrib() {};
 	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
-		{(static_cast<TangoTestServer *>(dev))->read_StringScalar(att);}
+		{ExceptionAttribute::read(dev, att); (static_cast<TangoTestServer *>(dev))->read_StringScalar(att);}
 	virtual void write(Tango::DeviceImpl *dev,Tango::WAttribute &att)
-		{(static_cast<TangoTestServer *>(dev))->write_StringScalar(att);}
+		{ExceptionAttribute::write(dev, att); (static_cast<TangoTestServer *>(dev))->write_StringScalar(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
 		{return (static_cast<TangoTestServer *>(dev))->is_StringScalar_allowed(ty);}
 };
 
 //	Attribute StringRoScalar class definition
-class StringRoScalarAttrib: public Tango::Attr
+class StringRoScalarAttrib: public ExceptionAttribute
 {
 public:
-	StringRoScalarAttrib():Attr("StringRoScalar",
+	StringRoScalarAttrib():ExceptionAttribute("StringRoScalar",
 			Tango::DEV_STRING, Tango::READ) {};
 	~StringRoScalarAttrib() {};
 	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
-		{(static_cast<TangoTestServer *>(dev))->read_StringRoScalar(att);}
+		{ExceptionAttribute::read(dev, att); (static_cast<TangoTestServer *>(dev))->read_StringRoScalar(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
 		{return (static_cast<TangoTestServer *>(dev))->is_StringRoScalar_allowed(ty);}
 };
 
 //	Attribute StringWoScalar class definition
-class StringWoScalarAttrib: public Tango::Attr
+class StringWoScalarAttrib: public ExceptionAttribute
 {
 public:
-	StringWoScalarAttrib():Attr("StringWoScalar",
+	StringWoScalarAttrib():ExceptionAttribute("StringWoScalar",
 			Tango::DEV_STRING, Tango::READ_WRITE) {};
 	~StringWoScalarAttrib() {};
 	virtual void write(Tango::DeviceImpl *dev,Tango::WAttribute &att)
-		{(static_cast<TangoTestServer *>(dev))->write_StringWoScalar(att);}
+		{ExceptionAttribute::write(dev, att); (static_cast<TangoTestServer *>(dev))->write_StringWoScalar(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
 		{return (static_cast<TangoTestServer *>(dev))->is_StringWoScalar_allowed(ty);}
 };
 
 //	Attribute BooleanScalar class definition
-class BooleanScalarAttrib: public Tango::Attr
+class BooleanScalarAttrib: public ExceptionAttribute
 {
 public:
-	BooleanScalarAttrib():Attr("BooleanScalar",
+	BooleanScalarAttrib():ExceptionAttribute("BooleanScalar",
 			Tango::DEV_BOOLEAN, Tango::READ_WRITE) {};
 	~BooleanScalarAttrib() {};
 	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
-		{(static_cast<TangoTestServer *>(dev))->read_BooleanScalar(att);}
+		{ExceptionAttribute::read(dev, att); (static_cast<TangoTestServer *>(dev))->read_BooleanScalar(att);}
 	virtual void write(Tango::DeviceImpl *dev,Tango::WAttribute &att)
-		{(static_cast<TangoTestServer *>(dev))->write_BooleanScalar(att);}
+		{ExceptionAttribute::write(dev, att); (static_cast<TangoTestServer *>(dev))->write_BooleanScalar(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
 		{return (static_cast<TangoTestServer *>(dev))->is_BooleanScalar_allowed(ty);}
 };
 
 //	Attribute BooleanRoScalar class definition
-class BooleanRoScalarAttrib: public Tango::Attr
+class BooleanRoScalarAttrib: public ExceptionAttribute
 {
 public:
-	BooleanRoScalarAttrib():Attr("BooleanRoScalar",
+	BooleanRoScalarAttrib():ExceptionAttribute("BooleanRoScalar",
 			Tango::DEV_BOOLEAN, Tango::READ) {};
 	~BooleanRoScalarAttrib() {};
 	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
-		{(static_cast<TangoTestServer *>(dev))->read_BooleanRoScalar(att);}
+		{ExceptionAttribute::read(dev, att); (static_cast<TangoTestServer *>(dev))->read_BooleanRoScalar(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
 		{return (static_cast<TangoTestServer *>(dev))->is_BooleanRoScalar_allowed(ty);}
 };
 
 //	Attribute BooleanWoScalar class definition
-class BooleanWoScalarAttrib: public Tango::Attr
+class BooleanWoScalarAttrib: public ExceptionAttribute
 {
 public:
-	BooleanWoScalarAttrib():Attr("BooleanWoScalar",
+	BooleanWoScalarAttrib():ExceptionAttribute("BooleanWoScalar",
 			Tango::DEV_BOOLEAN, Tango::WRITE) {};
 	~BooleanWoScalarAttrib() {};
 	virtual void write(Tango::DeviceImpl *dev,Tango::WAttribute &att)
-		{(static_cast<TangoTestServer *>(dev))->write_BooleanWoScalar(att);}
+		{ExceptionAttribute::write(dev, att); (static_cast<TangoTestServer *>(dev))->write_BooleanWoScalar(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
 		{return (static_cast<TangoTestServer *>(dev))->is_BooleanWoScalar_allowed(ty);}
 };
 
 //	Attribute DoubleSpectrum class definition
-class DoubleSpectrumAttrib: public Tango::SpectrumAttr
+class DoubleSpectrumAttrib: public ExceptionSpectrumAttribute
 {
 public:
 	// Constants for DoubleSpectrum attribute
 	constexpr static long X_DATA_SIZE = 10;
-	DoubleSpectrumAttrib():SpectrumAttr("DoubleSpectrum",
+	DoubleSpectrumAttrib():ExceptionSpectrumAttribute("DoubleSpectrum",
 			Tango::DEV_DOUBLE, Tango::READ_WRITE, DoubleSpectrumAttrib::X_DATA_SIZE) {};
 	~DoubleSpectrumAttrib() {};
 	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
-		{(static_cast<TangoTestServer *>(dev))->read_DoubleSpectrum(att);}
+		{ExceptionSpectrumAttribute::read(dev, att); (static_cast<TangoTestServer *>(dev))->read_DoubleSpectrum(att);}
 	virtual void write(Tango::DeviceImpl *dev,Tango::WAttribute &att)
-		{(static_cast<TangoTestServer *>(dev))->write_DoubleSpectrum(att);}
+		{ExceptionSpectrumAttribute::write(dev, att); (static_cast<TangoTestServer *>(dev))->write_DoubleSpectrum(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
 		{return (static_cast<TangoTestServer *>(dev))->is_DoubleSpectrum_allowed(ty);}
 };
 
 //	Attribute DoubleRoSpectrum class definition
-class DoubleRoSpectrumAttrib: public Tango::SpectrumAttr
+class DoubleRoSpectrumAttrib: public ExceptionSpectrumAttribute
 {
 public:
 	// Constants for DoubleRoSpectrum attribute
 	constexpr static long X_DATA_SIZE = 10;
-	DoubleRoSpectrumAttrib():SpectrumAttr("DoubleRoSpectrum",
+	DoubleRoSpectrumAttrib():ExceptionSpectrumAttribute("DoubleRoSpectrum",
 			Tango::DEV_DOUBLE, Tango::READ, DoubleRoSpectrumAttrib::X_DATA_SIZE) {};
 	~DoubleRoSpectrumAttrib() {};
 	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
-		{(static_cast<TangoTestServer *>(dev))->read_DoubleRoSpectrum(att);}
+		{ExceptionSpectrumAttribute::read(dev, att); (static_cast<TangoTestServer *>(dev))->read_DoubleRoSpectrum(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
 		{return (static_cast<TangoTestServer *>(dev))->is_DoubleRoSpectrum_allowed(ty);}
 };
 
 //	Attribute DoubleWoSpectrum class definition
-class DoubleWoSpectrumAttrib: public Tango::SpectrumAttr
+class DoubleWoSpectrumAttrib: public ExceptionSpectrumAttribute
 {
 public:
 	// Constants for DoubleWoSpectrum attribute
 	constexpr static long X_DATA_SIZE = 10;
-	DoubleWoSpectrumAttrib():SpectrumAttr("DoubleWoSpectrum",
+	DoubleWoSpectrumAttrib():ExceptionSpectrumAttribute("DoubleWoSpectrum",
 			Tango::DEV_DOUBLE, Tango::WRITE, DoubleWoSpectrumAttrib::X_DATA_SIZE) {};
 	~DoubleWoSpectrumAttrib() {};
 	virtual void write(Tango::DeviceImpl *dev,Tango::WAttribute &att)
-		{(static_cast<TangoTestServer *>(dev))->write_DoubleWoSpectrum(att);}
+		{ExceptionSpectrumAttribute::write(dev, att); (static_cast<TangoTestServer *>(dev))->write_DoubleWoSpectrum(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
 		{return (static_cast<TangoTestServer *>(dev))->is_DoubleWoSpectrum_allowed(ty);}
 };
 
 //	Attribute FloatSpectrum class definition
-class FloatSpectrumAttrib: public Tango::SpectrumAttr
+class FloatSpectrumAttrib: public ExceptionSpectrumAttribute
 {
 public:
 	// Constants for FloatSpectrum attribute
 	constexpr static long X_DATA_SIZE = 10;
-	FloatSpectrumAttrib():SpectrumAttr("FloatSpectrum",
+	FloatSpectrumAttrib():ExceptionSpectrumAttribute("FloatSpectrum",
 			Tango::DEV_FLOAT, Tango::READ_WRITE, FloatSpectrumAttrib::X_DATA_SIZE) {};
 	~FloatSpectrumAttrib() {};
 	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
-		{(static_cast<TangoTestServer *>(dev))->read_FloatSpectrum(att);}
+		{ExceptionSpectrumAttribute::read(dev, att); (static_cast<TangoTestServer *>(dev))->read_FloatSpectrum(att);}
 	virtual void write(Tango::DeviceImpl *dev,Tango::WAttribute &att)
-		{(static_cast<TangoTestServer *>(dev))->write_FloatSpectrum(att);}
+		{ExceptionSpectrumAttribute::write(dev, att); (static_cast<TangoTestServer *>(dev))->write_FloatSpectrum(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
 		{return (static_cast<TangoTestServer *>(dev))->is_FloatSpectrum_allowed(ty);}
 };
 
 //	Attribute FloatRoSpectrum class definition
-class FloatRoSpectrumAttrib: public Tango::SpectrumAttr
+class FloatRoSpectrumAttrib: public ExceptionSpectrumAttribute
 {
 public:
 	// Constants for FloatRoSpectrum attribute
 	constexpr static long X_DATA_SIZE = 10;
-	FloatRoSpectrumAttrib():SpectrumAttr("FloatRoSpectrum",
+	FloatRoSpectrumAttrib():ExceptionSpectrumAttribute("FloatRoSpectrum",
 			Tango::DEV_FLOAT, Tango::READ, FloatRoSpectrumAttrib::X_DATA_SIZE) {};
 	~FloatRoSpectrumAttrib() {};
 	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
-		{(static_cast<TangoTestServer *>(dev))->read_FloatRoSpectrum(att);}
+		{ExceptionSpectrumAttribute::read(dev, att); (static_cast<TangoTestServer *>(dev))->read_FloatRoSpectrum(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
 		{return (static_cast<TangoTestServer *>(dev))->is_FloatRoSpectrum_allowed(ty);}
 };
 
 //	Attribute FloatWoSpectrum class definition
-class FloatWoSpectrumAttrib: public Tango::SpectrumAttr
+class FloatWoSpectrumAttrib: public ExceptionSpectrumAttribute
 {
 public:
 	// Constants for FloatWoSpectrum attribute
 	constexpr static long X_DATA_SIZE = 10;
-	FloatWoSpectrumAttrib():SpectrumAttr("FloatWoSpectrum",
+	FloatWoSpectrumAttrib():ExceptionSpectrumAttribute("FloatWoSpectrum",
 			Tango::DEV_FLOAT, Tango::READ_WRITE, FloatWoSpectrumAttrib::X_DATA_SIZE) {};
 	~FloatWoSpectrumAttrib() {};
 	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
-		{(static_cast<TangoTestServer *>(dev))->read_FloatWoSpectrum(att);}
+		{ExceptionSpectrumAttribute::read(dev, att); (static_cast<TangoTestServer *>(dev))->read_FloatWoSpectrum(att);}
 	virtual void write(Tango::DeviceImpl *dev,Tango::WAttribute &att)
-		{(static_cast<TangoTestServer *>(dev))->write_FloatWoSpectrum(att);}
+		{ExceptionSpectrumAttribute::write(dev, att); (static_cast<TangoTestServer *>(dev))->write_FloatWoSpectrum(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
 		{return (static_cast<TangoTestServer *>(dev))->is_FloatWoSpectrum_allowed(ty);}
 };
 
 //	Attribute IntSpectrum class definition
-class IntSpectrumAttrib: public Tango::SpectrumAttr
+class IntSpectrumAttrib: public ExceptionSpectrumAttribute
 {
 public:
 	// Constants for IntSpectrum attribute
 	constexpr static long X_DATA_SIZE = 10;
-	IntSpectrumAttrib():SpectrumAttr("IntSpectrum",
+	IntSpectrumAttrib():ExceptionSpectrumAttribute("IntSpectrum",
 			Tango::DEV_LONG, Tango::READ_WRITE, IntSpectrumAttrib::X_DATA_SIZE) {};
 	~IntSpectrumAttrib() {};
 	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
-		{(static_cast<TangoTestServer *>(dev))->read_IntSpectrum(att);}
+		{ExceptionSpectrumAttribute::read(dev, att); (static_cast<TangoTestServer *>(dev))->read_IntSpectrum(att);}
 	virtual void write(Tango::DeviceImpl *dev,Tango::WAttribute &att)
-		{(static_cast<TangoTestServer *>(dev))->write_IntSpectrum(att);}
+		{ExceptionSpectrumAttribute::write(dev, att); (static_cast<TangoTestServer *>(dev))->write_IntSpectrum(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
 		{return (static_cast<TangoTestServer *>(dev))->is_IntSpectrum_allowed(ty);}
 };
 
 //	Attribute IntRoSpectrum class definition
-class IntRoSpectrumAttrib: public Tango::SpectrumAttr
+class IntRoSpectrumAttrib: public ExceptionSpectrumAttribute
 {
 public:
 	// Constants for IntRoSpectrum attribute
 	constexpr static long X_DATA_SIZE = 10;
-	IntRoSpectrumAttrib():SpectrumAttr("IntRoSpectrum",
+	IntRoSpectrumAttrib():ExceptionSpectrumAttribute("IntRoSpectrum",
 			Tango::DEV_LONG, Tango::READ, IntRoSpectrumAttrib::X_DATA_SIZE) {};
 	~IntRoSpectrumAttrib() {};
 	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
-		{(static_cast<TangoTestServer *>(dev))->read_IntRoSpectrum(att);}
+		{ExceptionSpectrumAttribute::read(dev, att); (static_cast<TangoTestServer *>(dev))->read_IntRoSpectrum(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
 		{return (static_cast<TangoTestServer *>(dev))->is_IntRoSpectrum_allowed(ty);}
 };
 
 //	Attribute IntWoSpectrum class definition
-class IntWoSpectrumAttrib: public Tango::SpectrumAttr
+class IntWoSpectrumAttrib: public ExceptionSpectrumAttribute
 {
 public:
 	// Constants for IntWoSpectrum attribute
 	constexpr static long X_DATA_SIZE = 10;
-	IntWoSpectrumAttrib():SpectrumAttr("IntWoSpectrum",
+	IntWoSpectrumAttrib():ExceptionSpectrumAttribute("IntWoSpectrum",
 			Tango::DEV_LONG, Tango::WRITE, IntWoSpectrumAttrib::X_DATA_SIZE) {};
 	~IntWoSpectrumAttrib() {};
 	virtual void write(Tango::DeviceImpl *dev,Tango::WAttribute &att)
-		{(static_cast<TangoTestServer *>(dev))->write_IntWoSpectrum(att);}
+		{ExceptionSpectrumAttribute::write(dev, att); (static_cast<TangoTestServer *>(dev))->write_IntWoSpectrum(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
 		{return (static_cast<TangoTestServer *>(dev))->is_IntWoSpectrum_allowed(ty);}
 };
 
 //	Attribute StringSpectrum class definition
-class StringSpectrumAttrib: public Tango::SpectrumAttr
+class StringSpectrumAttrib: public ExceptionSpectrumAttribute
 {
 public:
 	// Constants for StringSpectrum attribute
 	constexpr static long X_DATA_SIZE = 10;
-	StringSpectrumAttrib():SpectrumAttr("StringSpectrum",
+	StringSpectrumAttrib():ExceptionSpectrumAttribute("StringSpectrum",
 			Tango::DEV_STRING, Tango::READ_WRITE, StringSpectrumAttrib::X_DATA_SIZE) {};
 	~StringSpectrumAttrib() {};
 	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
-		{(static_cast<TangoTestServer *>(dev))->read_StringSpectrum(att);}
+		{ExceptionSpectrumAttribute::read(dev, att); (static_cast<TangoTestServer *>(dev))->read_StringSpectrum(att);}
 	virtual void write(Tango::DeviceImpl *dev,Tango::WAttribute &att)
-		{(static_cast<TangoTestServer *>(dev))->write_StringSpectrum(att);}
+		{ExceptionSpectrumAttribute::write(dev, att); (static_cast<TangoTestServer *>(dev))->write_StringSpectrum(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
 		{return (static_cast<TangoTestServer *>(dev))->is_StringSpectrum_allowed(ty);}
 };
 
 //	Attribute StringRoSpectrum class definition
-class StringRoSpectrumAttrib: public Tango::SpectrumAttr
+class StringRoSpectrumAttrib: public ExceptionSpectrumAttribute
 {
 public:
 	// Constants for StringRoSpectrum attribute
 	constexpr static long X_DATA_SIZE = 10;
-	StringRoSpectrumAttrib():SpectrumAttr("StringRoSpectrum",
+	StringRoSpectrumAttrib():ExceptionSpectrumAttribute("StringRoSpectrum",
 			Tango::DEV_STRING, Tango::READ, StringRoSpectrumAttrib::X_DATA_SIZE) {};
 	~StringRoSpectrumAttrib() {};
 	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
-		{(static_cast<TangoTestServer *>(dev))->read_StringRoSpectrum(att);}
+		{ExceptionSpectrumAttribute::read(dev, att); (static_cast<TangoTestServer *>(dev))->read_StringRoSpectrum(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
 		{return (static_cast<TangoTestServer *>(dev))->is_StringRoSpectrum_allowed(ty);}
 };
 
 //	Attribute StringWoSpectrum class definition
-class StringWoSpectrumAttrib: public Tango::SpectrumAttr
+class StringWoSpectrumAttrib: public ExceptionSpectrumAttribute
 {
 public:
 	// Constants for StringWoSpectrum attribute
 	constexpr static long X_DATA_SIZE = 10;
-	StringWoSpectrumAttrib():SpectrumAttr("StringWoSpectrum",
+	StringWoSpectrumAttrib():ExceptionSpectrumAttribute("StringWoSpectrum",
 			Tango::DEV_STRING, Tango::READ_WRITE, StringWoSpectrumAttrib::X_DATA_SIZE) {};
 	~StringWoSpectrumAttrib() {};
 	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
-		{(static_cast<TangoTestServer *>(dev))->read_StringWoSpectrum(att);}
+		{ExceptionSpectrumAttribute::read(dev, att); (static_cast<TangoTestServer *>(dev))->read_StringWoSpectrum(att);}
 	virtual void write(Tango::DeviceImpl *dev,Tango::WAttribute &att)
-		{(static_cast<TangoTestServer *>(dev))->write_StringWoSpectrum(att);}
+		{ExceptionSpectrumAttribute::write(dev, att); (static_cast<TangoTestServer *>(dev))->write_StringWoSpectrum(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
 		{return (static_cast<TangoTestServer *>(dev))->is_StringWoSpectrum_allowed(ty);}
 };
