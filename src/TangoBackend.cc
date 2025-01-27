@@ -78,8 +78,9 @@ namespace ChimeraTK {
           "Invalid Tango device address " + _address + ", " + static_cast<std::string>(ex.errors[0].desc));
     }
     catch(Tango::ConnectionFailed& ex) {
-      throw ChimeraTK::runtime_error(
-          "Cannot connect to " + _address + ", " + static_cast<std::string>(ex.errors[0].desc));
+      std::string message = "Cannot connect to " + _address + ", " + static_cast<std::string>(ex.errors[0].desc);
+      setException(message);
+      throw ChimeraTK::runtime_error(message);
     }
 
     setOpenedAndClearException();
@@ -133,7 +134,7 @@ namespace ChimeraTK {
             "Broken Tango attribute database information. " + registerPathName + " does not come with a data format");
     }
 
-    p->setExceptionBackend(shared_from_this());
+    p->setExceptionBackend(sharedThis);
     return p;
   }
 
