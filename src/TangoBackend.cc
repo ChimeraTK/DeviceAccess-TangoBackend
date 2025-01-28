@@ -82,6 +82,10 @@ namespace ChimeraTK {
       setException(message);
       throw ChimeraTK::runtime_error(message);
     }
+    catch(CORBA::Exception& ex) {
+      Tango::Except::print_exception(ex);
+      throw ChimeraTK::runtime_error("jdflöksdjfslödkfj");
+    }
 
     setOpenedAndClearException();
   }

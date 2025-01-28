@@ -151,41 +151,17 @@ void TangoTestServer::delete_device()
         for(int i = 0; i < StringSpectrumAttrib::X_DATA_SIZE; i++) {
           Tango::string_free(attr_StringSpectrum_read[i]);
         }
-        for(int i = 0; i < StringRoSpectrumAttrib::X_DATA_SIZE; i++) {
-          Tango::string_free(attr_StringRoSpectrum_read[i]);
-        }
-        for(int i = 0; i < StringWoSpectrumAttrib::X_DATA_SIZE; i++) {
-          Tango::string_free(attr_StringWoSpectrum_read[i]);
-        }
         /* clang-format off */
 	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::delete_device
 	delete[] attr_DoubleScalar_read;
-	delete[] attr_DoubleRoScalar_read;
-	delete[] attr_DoubleWoScalar_read;
 	delete[] attr_FloatScalar_read;
-	delete[] attr_FloatRoScalar_read;
-	delete[] attr_FloatWoScalar_read;
 	delete[] attr_IntScalar_read;
-	delete[] attr_IntRoScalar_read;
-	delete[] attr_IntWoScalar_read;
 	delete[] attr_StringScalar_read;
-	delete[] attr_StringRoScalar_read;
-	delete[] attr_StringWoScalar_read;
 	delete[] attr_BooleanScalar_read;
-	delete[] attr_BooleanRoScalar_read;
-	delete[] attr_BooleanWoScalar_read;
 	delete[] attr_DoubleSpectrum_read;
-	delete[] attr_DoubleRoSpectrum_read;
-	delete[] attr_DoubleWoSpectrum_read;
 	delete[] attr_FloatSpectrum_read;
-	delete[] attr_FloatRoSpectrum_read;
-	delete[] attr_FloatWoSpectrum_read;
 	delete[] attr_IntSpectrum_read;
-	delete[] attr_IntRoSpectrum_read;
-	delete[] attr_IntWoSpectrum_read;
 	delete[] attr_StringSpectrum_read;
-	delete[] attr_StringRoSpectrum_read;
-	delete[] attr_StringWoSpectrum_read;
 }
 
 //--------------------------------------------------------
@@ -206,71 +182,29 @@ void TangoTestServer::init_device()
 	//	No device property to be read from database
 
 	attr_DoubleScalar_read = new Tango::DevDouble[1];
-	attr_DoubleRoScalar_read = new Tango::DevDouble[1];
-        attr_DoubleWoScalar_read = new Tango::DevDouble[1];
         attr_FloatScalar_read = new Tango::DevFloat[1];
-	attr_FloatRoScalar_read = new Tango::DevFloat[1];
-	attr_FloatWoScalar_read = new Tango::DevFloat[1];
 	attr_IntScalar_read = new Tango::DevLong[1];
-	attr_IntRoScalar_read = new Tango::DevLong[1];
-	attr_IntWoScalar_read = new Tango::DevLong[1];
 	attr_StringScalar_read = new Tango::DevString[1];
-	attr_StringRoScalar_read = new Tango::DevString[1];
-	attr_StringWoScalar_read = new Tango::DevString[1];
 	attr_BooleanScalar_read = new Tango::DevBoolean[1];
-	attr_BooleanRoScalar_read = new Tango::DevBoolean[1];
-	attr_BooleanWoScalar_read = new Tango::DevBoolean[1];
 	attr_DoubleSpectrum_read = new Tango::DevDouble[10];
-	attr_DoubleRoSpectrum_read = new Tango::DevDouble[10];
-	attr_DoubleWoSpectrum_read = new Tango::DevDouble[10];
 	attr_FloatSpectrum_read = new Tango::DevFloat[10];
-        attr_FloatRoSpectrum_read = new Tango::DevFloat[10];
-        attr_FloatWoSpectrum_read = new Tango::DevFloat[10];
         attr_IntSpectrum_read = new Tango::DevLong[10];
-	attr_IntRoSpectrum_read = new Tango::DevLong[10];
-        attr_IntWoSpectrum_read = new Tango::DevLong[10];
         attr_StringSpectrum_read = new Tango::DevString[10];
-        attr_StringRoSpectrum_read = new Tango::DevString[10];
-        attr_StringWoSpectrum_read = new Tango::DevString[10];
         /*----- PROTECTED REGION ID(TangoTestServer::init_device) ENABLED START -----*/
 	/* clang-format on */
         *attr_DoubleScalar_read = 0.0;
-        *attr_DoubleRoScalar_read = 0.0;
-        *attr_DoubleWoScalar_read = 0.0;
         *attr_FloatScalar_read = 0.0F;
-        *attr_FloatRoScalar_read = 0.0F;
-        *attr_FloatWoScalar_read = 0.0F;
         *attr_IntScalar_read = 0;
-        *attr_IntRoScalar_read = 0;
-        *attr_IntWoScalar_read = 0;
         *attr_FloatScalar_read = 0;
-        *attr_FloatRoScalar_read = 0.0F;
-        *attr_FloatWoScalar_read = 0.0F;
         *attr_StringScalar_read = Tango::string_dup("");
-        *attr_StringRoScalar_read = Tango::string_dup("");
-        *attr_StringWoScalar_read = Tango::string_dup("");
         *attr_BooleanScalar_read = false;
-        *attr_BooleanRoScalar_read = false;
-        *attr_BooleanWoScalar_read = false;
 
         std::fill(attr_DoubleSpectrum_read, attr_DoubleSpectrum_read + 10, 0.0);
-        std::fill(attr_DoubleRoSpectrum_read, attr_DoubleRoSpectrum_read + 10, 0.0);
-        std::fill(attr_DoubleWoSpectrum_read, attr_DoubleWoSpectrum_read + 10, 0.0);
         std::fill(attr_FloatSpectrum_read, attr_FloatSpectrum_read + 10, 0.0F);
-        std::fill(attr_FloatRoSpectrum_read, attr_FloatRoSpectrum_read + 10, 0.0F);
-        std::fill(attr_FloatWoSpectrum_read, attr_FloatWoSpectrum_read + 10, 0.0F);
         for(int i = 0; i < StringSpectrumAttrib::X_DATA_SIZE; i++) {
           attr_StringSpectrum_read[i] = Tango::string_dup("");
         }
-        for(int i = 0; i < StringRoSpectrumAttrib::X_DATA_SIZE; i++) {
-          attr_StringRoSpectrum_read[i] = Tango::string_dup("");
-        }
-        for(int i = 0; i < StringWoSpectrumAttrib::X_DATA_SIZE; i++) {
-          attr_StringWoSpectrum_read[i] = Tango::string_dup("");
-        }
         std::fill(attr_IntSpectrum_read, attr_IntSpectrum_read + 10, 0);
-        std::fill(attr_IntRoSpectrum_read, attr_IntRoSpectrum_read + 10, 0);
-        std::fill(attr_IntWoSpectrum_read, attr_IntWoSpectrum_read + 10, 0);
         /* clang-format off */
 	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::init_device
 }
@@ -378,7 +312,7 @@ void TangoTestServer::read_DoubleRoScalar(Tango::Attribute &attr)
 	/*----- PROTECTED REGION ID(TangoTestServer::read_DoubleRoScalar) ENABLED START -----*/
 	/* clang-format on */
 	//	Set the attribute value
-	attr.set_value(attr_DoubleRoScalar_read);
+        attr.set_value(attr_DoubleScalar_read);
 	/* clang-format off */
 	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::read_DoubleRoScalar
 }
@@ -458,7 +392,7 @@ void TangoTestServer::read_FloatRoScalar(Tango::Attribute &attr)
 	/*----- PROTECTED REGION ID(TangoTestServer::read_FloatRoScalar) ENABLED START -----*/
 	/* clang-format on */
 	//	Set the attribute value
-	attr.set_value(attr_FloatRoScalar_read);
+        attr.set_value(attr_FloatScalar_read);
 	/* clang-format off */
 	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::read_FloatRoScalar
 }
@@ -477,7 +411,7 @@ void TangoTestServer::read_FloatWoScalar(Tango::Attribute &attr)
 	/*----- PROTECTED REGION ID(TangoTestServer::read_FloatWoScalar) ENABLED START -----*/
 	/* clang-format on */
 	//	Set the attribute value
-	attr.set_value(attr_FloatWoScalar_read);
+        attr.set_value(attr_FloatScalar_read);
 	/* clang-format off */
 	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::read_FloatWoScalar
 }
@@ -558,7 +492,7 @@ void TangoTestServer::read_IntRoScalar(Tango::Attribute &attr)
 	/*----- PROTECTED REGION ID(TangoTestServer::read_IntRoScalar) ENABLED START -----*/
 	/* clang-format on */
 	//	Set the attribute value
-	attr.set_value(attr_IntRoScalar_read);
+        attr.set_value(attr_IntScalar_read);
 	/* clang-format off */
 	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::read_IntRoScalar
 }
@@ -579,7 +513,7 @@ void TangoTestServer::write_IntWoScalar(Tango::WAttribute &attr)
 	attr.get_write_value(w_val);
 	/*----- PROTECTED REGION ID(TangoTestServer::write_IntWoScalar) ENABLED START -----*/
 	/* clang-format on */
-        attr_IntWoScalar_read[0] = w_val;
+        attr_IntScalar_read[0] = w_val;
 	/* clang-format off */
 	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::write_IntWoScalar
 }
@@ -639,7 +573,7 @@ void TangoTestServer::read_StringRoScalar(Tango::Attribute &attr)
 	/*----- PROTECTED REGION ID(TangoTestServer::read_StringRoScalar) ENABLED START -----*/
 	/* clang-format on */
 	//	Set the attribute value
-	attr.set_value(attr_StringRoScalar_read);
+        attr.set_value(attr_StringScalar_read);
 	/* clang-format off */
 	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::read_StringRoScalar
 }
@@ -661,7 +595,7 @@ void TangoTestServer::write_StringWoScalar(Tango::WAttribute &attr)
 	attr.get_write_value(w_val);
 	/*----- PROTECTED REGION ID(TangoTestServer::write_StringWoScalar) ENABLED START -----*/
 	/* clang-format on */
-        *attr_StringWoScalar_read = w_val;
+        *attr_StringScalar_read = w_val;
         /* clang-format off */
 	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::write_StringWoScalar
 }
@@ -720,7 +654,7 @@ void TangoTestServer::read_BooleanRoScalar(Tango::Attribute &attr)
 	/*----- PROTECTED REGION ID(TangoTestServer::read_BooleanRoScalar) ENABLED START -----*/
 	/* clang-format on */
 	//	Set the attribute value
-	attr.set_value(attr_BooleanRoScalar_read);
+        attr.set_value(attr_BooleanScalar_read);
 	/* clang-format off */
 	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::read_BooleanRoScalar
 }
@@ -741,7 +675,7 @@ void TangoTestServer::write_BooleanWoScalar(Tango::WAttribute &attr)
 	attr.get_write_value(w_val);
 	/*----- PROTECTED REGION ID(TangoTestServer::write_BooleanWoScalar) ENABLED START -----*/
 	/* clang-format on */
-        *attr_BooleanWoScalar_read = w_val;
+        *attr_BooleanScalar_read = w_val;
         /* clang-format off */
 	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::write_BooleanWoScalar
 }
@@ -803,7 +737,7 @@ void TangoTestServer::read_DoubleRoSpectrum(Tango::Attribute &attr)
 	/*----- PROTECTED REGION ID(TangoTestServer::read_DoubleRoSpectrum) ENABLED START -----*/
 	/* clang-format on */
 	//	Set the attribute value
-	attr.set_value(attr_DoubleRoSpectrum_read, DoubleRoSpectrumAttrib::X_DATA_SIZE);
+        attr.set_value(attr_DoubleSpectrum_read, DoubleRoSpectrumAttrib::X_DATA_SIZE);
 	/* clang-format off */
 	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::read_DoubleRoSpectrum
 }
@@ -889,7 +823,7 @@ void TangoTestServer::read_FloatRoSpectrum(Tango::Attribute &attr)
 	/*----- PROTECTED REGION ID(TangoTestServer::read_FloatRoSpectrum) ENABLED START -----*/
 	/* clang-format on */
 	//	Set the attribute value
-	attr.set_value(attr_FloatRoSpectrum_read, FloatRoSpectrumAttrib::X_DATA_SIZE);
+        attr.set_value(attr_FloatSpectrum_read, FloatRoSpectrumAttrib::X_DATA_SIZE);
 	/* clang-format off */
 	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::read_FloatRoSpectrum
 }
@@ -908,7 +842,7 @@ void TangoTestServer::read_FloatWoSpectrum(Tango::Attribute &attr)
 	/*----- PROTECTED REGION ID(TangoTestServer::read_FloatWoSpectrum) ENABLED START -----*/
 	/* clang-format on */
 	//	Set the attribute value
-	attr.set_value(attr_FloatWoSpectrum_read, FloatWoSpectrumAttrib::X_DATA_SIZE);
+        attr.set_value(attr_FloatSpectrum_read, FloatWoSpectrumAttrib::X_DATA_SIZE);
 	/* clang-format off */
 	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::read_FloatWoSpectrum
 }
@@ -996,7 +930,7 @@ void TangoTestServer::read_IntRoSpectrum(Tango::Attribute &attr)
 	/*----- PROTECTED REGION ID(TangoTestServer::read_IntRoSpectrum) ENABLED START -----*/
 	/* clang-format on */
 	//	Set the attribute value
-	attr.set_value(attr_IntRoSpectrum_read, IntRoSpectrumAttrib::X_DATA_SIZE);
+        attr.set_value(attr_IntSpectrum_read, IntRoSpectrumAttrib::X_DATA_SIZE);
 	/* clang-format off */
 	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::read_IntRoSpectrum
 }
@@ -1087,7 +1021,7 @@ void TangoTestServer::read_StringRoSpectrum(Tango::Attribute &attr)
 	/*----- PROTECTED REGION ID(TangoTestServer::read_StringRoSpectrum) ENABLED START -----*/
 	/* clang-format on */
 	//	Set the attribute value
-	attr.set_value(attr_StringRoSpectrum_read, StringRoSpectrumAttrib::X_DATA_SIZE);
+        attr.set_value(attr_StringSpectrum_read, StringRoSpectrumAttrib::X_DATA_SIZE);
 	/* clang-format off */
 	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::read_StringRoSpectrum
 }
@@ -1106,7 +1040,7 @@ void TangoTestServer::read_StringWoSpectrum(Tango::Attribute &attr)
 	/*----- PROTECTED REGION ID(TangoTestServer::read_StringWoSpectrum) ENABLED START -----*/
 	/* clang-format on */
 	//	Set the attribute value
-	attr.set_value(attr_StringWoSpectrum_read, StringWoSpectrumAttrib::X_DATA_SIZE);
+        attr.set_value(attr_StringSpectrum_read, StringWoSpectrumAttrib::X_DATA_SIZE);
 	/* clang-format off */
 	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::read_StringWoSpectrum
 }

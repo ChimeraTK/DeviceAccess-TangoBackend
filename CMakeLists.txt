@@ -54,11 +54,10 @@ if (BUILD_TESTS)
     enable_testing()
 
     file(GLOB testServerSources "${CMAKE_SOURCE_DIR}/tests/generated/*.cpp")
-    list(FILTER testServerSources EXCLUDE REGEX "main.cpp")
     file(GLOB testServerHeaders "${CMAKE_SOURCE_DIR}/tests/generated/*.h")
 
     # Compile an object library for the Tango test server
-    add_library(tangoTestServer ${testServerSources} ${testServerHeaders})
+    add_executable(tangoTestServer ${testServerSources} ${testServerHeaders})
     target_link_libraries(tangoTestServer PRIVATE PkgConfig::Tango)
 
     aux_source_directory(${CMAKE_SOURCE_DIR}/tests/executables_src testExecutables)
@@ -68,7 +67,7 @@ if (BUILD_TESTS)
       get_filename_component(excutableName ${testExecutableSrcFile} NAME_WE)
 
       # each test includes a DOOCS server
-      add_executable(${excutableName} $<TARGET_OBJECTS:tangoTestServer> ${testExecutableSrcFile})
+      add_executable(${excutableName} ${testExecutableSrcFile})
       target_include_directories(${excutableName} PRIVATE "${CMAKE_SOURCE_DIR}/tests/generated")
       target_link_libraries(${excutableName}
         PRIVATE ChimeraTK::ChimeraTK-DeviceAccess PkgConfig::Tango ${PROJECT_NAME} Boost::unit_test_framework)

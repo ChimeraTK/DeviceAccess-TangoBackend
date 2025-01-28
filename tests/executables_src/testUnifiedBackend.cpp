@@ -10,6 +10,7 @@
 #include <ChimeraTK/UnifiedBackendTest.h>
 
 #include <boost/filesystem.hpp>
+#include <boost/process.hpp>
 
 #include <chrono>
 #include <filesystem>
@@ -23,7 +24,7 @@ using namespace boost::unit_test_framework;
 using namespace ChimeraTK;
 
 struct ThreadedTangoServer {
-  explicit ThreadedTangoServer(std::string setTestName = "", bool setVerbose = false);
+  explicit ThreadedTangoServer(std::string setTestName = "Unified", bool setVerbose = false);
   ~ThreadedTangoServer();
 
   /*std::string t the Tango server
@@ -75,13 +76,14 @@ struct ThreadedTangoServer {
   bool keepOfflineDatabase{false};
   bool verbose{false};
   std::vector<std::string> argv;
-  std::thread tangoServerThread;
+
+  boost::process::child tangoServerProcess;
+
   std::string deviceString;
   Tango::Util* tg{nullptr};
-  static std::atomic<bool> shutdownRequested;
   static ThreadedTangoServer* self;
   static ThreadedTangoServer& instance() { return *self; }
-  TangoTestServer_ns::TangoTestServer* ourDevice{nullptr};
+  std::shared_ptr<Tango::DeviceProxy> remoteProxy;
 };
 
 ThreadedTangoServer::ThreadedTangoServer(std::string setTestName, bool setVerbose)
@@ -93,9 +95,11 @@ ThreadedTangoServer::ThreadedTangoServer(std::string setTestName, bool setVerbos
 /**********************************************************************************************************************/
 
 ThreadedTangoServer::~ThreadedTangoServer() {
-  if(tangoServerThread.joinable()) {
+  if(tangoServerProcess.joinable()) {
     stop();
   }
+
+  remoteProxy.reset();
 
   if(!keepOfflineDatabase) {
     try {
@@ -110,80 +114,65 @@ ThreadedTangoServer::~ThreadedTangoServer() {
 /**********************************************************************************************************************/
 
 void ThreadedTangoServer::start() {
-  std::mutex in_mtx;
-  std::unique_lock<std::mutex> in(in_mtx);
-  std::condition_variable cv;
-  bool threadRunning{false};
-
-  if(threadRunning) {
+  if(tangoServerProcess.running()) {
     return;
   }
 
-  tangoServerThread = std::thread([&]() {
-    argv.emplace_back(testName + "_ds");
-    argv.emplace_back("Test" + testName);
-    if(verbose || std::getenv("TANGO_TESTS_VERBOSE") != nullptr) {
-      argv.emplace_back("-v5");
-    }
-    deviceString = std::string("tango/test/") + testName;
+  argv.clear();
+  // argv.emplace_back(testName + "_ds");
+  argv.emplace_back("Test" + testName);
+  if(verbose || std::getenv("TANGO_TESTS_VERBOSE") != nullptr) {
+    argv.emplace_back("-v5");
+  }
+  deviceString = std::string("tango/test/tg_test01") + testName;
 
-    if(offlineDatabase.empty()) {
-      argv.emplace_back("-nodb");
-      argv.emplace_back("-dlist");
-    }
-    else {
-      argv.emplace_back("-file=" + offlineDatabase);
-    }
-    argv.emplace_back(deviceString);
-    argv.emplace_back("-ORBendPoint");
-    argv.emplace_back("giop:tcp::" + port());
+  if(offlineDatabase.empty()) {
+    argv.emplace_back("-nodb");
+    argv.emplace_back("-dlist");
+  }
+  else {
+    argv.emplace_back("-file=" + offlineDatabase);
+  }
+  argv.emplace_back(deviceString);
+  argv.emplace_back("-ORBendPoint");
+  argv.emplace_back("giop:tcp:127.0.0.1:" + port());
 
-    std::vector<const char*> args;
-    args.resize(argv.size());
-    std::transform(argv.begin(), argv.end(), args.begin(), [&](auto& s) { return s.c_str(); });
+  try {
+    tangoServerProcess = boost::process::child("./tangoTestServer", boost::process::args(argv));
+  }
+  catch(...) {
+    abort();
+  }
 
+  std::cerr << "=====> Child is " << tangoServerProcess.id() << ", Port is " << port() << std::endl;
+
+  int i;
+
+  std::cout << "Generating proxy" << std::endl;
+
+  auto url = getClientUrl();
+  url.replace(url.find("%23"), 3, "#");
+  while(true) {
     try {
-      // Need to pass it down to something that usually takes argc, argv directly from main
-      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
-      auto* tg = Tango::Util::init(int(args.size()), const_cast<char**>(args.data()));
-      tg->server_init(false);
-      auto devices = tg->get_device_list_by_class("TangoTestServer");
-      assert(devices.size() == 1);
-
-      ourDevice = dynamic_cast<TangoTestServer_ns::TangoTestServer*>(devices[0]);
-      assert(ourDevice != nullptr);
-
-      auto callback = []() -> bool {
-        auto shutdown = ThreadedTangoServer::shutdownRequested.load();
-        if(shutdown) {
-          return true;
-        }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        return false;
-      };
-
-      tg->server_set_event_loop(callback);
-      {
-        std::lock_guard<std::mutex> lg(in_mtx);
-        threadRunning = true;
-        cv.notify_one();
-      }
-
-      tg->server_run();
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+      remoteProxy = std::make_shared<Tango::DeviceProxy>(url);
+      break;
     }
-    catch(Tango::DevFailed& ex) {
+    catch(CORBA::Exception& ex) {
       Tango::Except::print_exception(ex);
+      assert(false);
     }
-  });
-  cv.wait(in, [&] { return threadRunning; });
+  }
 }
 
 /**********************************************************************************************************************/
 
 void ThreadedTangoServer::stop() {
-  ThreadedTangoServer::shutdownRequested.store(true);
-  tangoServerThread.join();
+  remoteProxy.reset();
+
+  auto remotePid = tangoServerProcess.id();
+  kill(remotePid, SIGINT);
+  tangoServerProcess.wait();
 }
 
 /**********************************************************************************************************************/
@@ -255,8 +244,6 @@ ThreadedTangoServer& ThreadedTangoServer::overrideNames(const std::string& newNa
 
 /**********************************************************************************************************************/
 
-std::atomic<bool> ThreadedTangoServer::shutdownRequested{false};
-
 ThreadedTangoServer* ThreadedTangoServer::self{nullptr};
 BOOST_GLOBAL_FIXTURE(ThreadedTangoServer);
 
@@ -282,7 +269,13 @@ struct AllRegisterDefaults {
                                            .disableSwitchWriteOnly();
 
   void setForceRuntimeError(bool enable, size_t) {
-    ThreadedTangoServer::self->ourDevice->runtimeError.store(enable); }
+    if(enable) {
+      ThreadedTangoServer::self->stop();
+    }
+    else {
+      ThreadedTangoServer::self->start();
+    }
+  }
 };
 
 /**********************************************************************************************************************/
@@ -367,52 +360,110 @@ struct ArrayDefaults : AllRegisterDefaults<DERIVED> {
 
 struct RegSomeInt : ScalarDefaults<RegSomeInt> {
   std::string path() { return "IntScalar"; }
+  std::string writePath() { return "IntScalar"; }
+  std::string readPath() { return "IntScalar"; }
   typedef int32_t minimumUserType;
   int32_t increment{3};
 
-  void setValue(minimumUserType v) { ThreadedTangoServer::self->ourDevice->attr_IntScalar_read[0] = v; }
+  void setValue(minimumUserType v) {
+    auto attr = Tango::DeviceAttribute(writePath(), v);
+    ThreadedTangoServer::self->remoteProxy->write_attribute(attr);
+  }
 
-  minimumUserType getValue() { return ThreadedTangoServer::self->ourDevice->attr_IntScalar_read[0]; }
+  minimumUserType getValue() {
+    Tango::DevLong value;
+    auto attr = ThreadedTangoServer::self->remoteProxy->read_attribute(readPath());
+    attr >> value;
+
+    return value;
+  }
 };
 
 struct RegSomeRoInt : ScalarDefaults<RegSomeRoInt> {
   std::string path() { return "IntRoScalar"; }
+  std::string writePath() { return "IntScalar"; }
+  std::string readPath() { return "IntScalar"; }
   typedef int32_t minimumUserType;
   int32_t increment{3};
 
   static constexpr auto capabilities = ScalarDefaults<RegSomeInt>::capabilities.enableTestReadOnly();
 
-  void setValue(minimumUserType v) { ThreadedTangoServer::self->ourDevice->attr_IntRoScalar_read[0] = v; }
+  void setValue(minimumUserType v) {
+    auto attr = Tango::DeviceAttribute(writePath(), v);
+    ThreadedTangoServer::self->remoteProxy->write_attribute(attr);
+  }
 
-  minimumUserType getValue() { return ThreadedTangoServer::self->ourDevice->attr_IntRoScalar_read[0]; }
+  minimumUserType getValue() {
+    Tango::DevLong value;
+    auto attr = ThreadedTangoServer::self->remoteProxy->read_attribute(readPath());
+    attr >> value;
+
+    return value;
+  }
 };
 
 struct RegSomeWoInt : ScalarDefaults<RegSomeWoInt> {
   std::string path() { return "IntWoScalar"; }
+  std::string writePath() { return "IntScalar"; }
+  std::string readPath() { return "IntScalar"; }
   typedef int32_t minimumUserType;
   int32_t increment{3};
 
   static constexpr auto capabilities = ScalarDefaults<RegSomeInt>::capabilities.enableTestWriteOnly();
 
-  void setValue(minimumUserType v) { ThreadedTangoServer::self->ourDevice->attr_IntWoScalar_read[0] = v; }
+  void setValue(minimumUserType v) {
+    auto attr = Tango::DeviceAttribute(writePath(), v);
+    ThreadedTangoServer::self->remoteProxy->write_attribute(attr);
+  }
 
-  minimumUserType getValue() { return ThreadedTangoServer::self->ourDevice->attr_IntWoScalar_read[0]; }
+  minimumUserType getValue() {
+    Tango::DevLong value;
+    auto attr = ThreadedTangoServer::self->remoteProxy->read_attribute(readPath());
+    attr >> value;
+
+    return value;
+  }
 };
 
 struct RegSomeBool : ScalarDefaults<RegSomeBool> {
   std::string path() { return "BooleanScalar"; }
+  std::string writePath() { return "BooleanScalar"; }
+  std::string readPath() { return "BooleanScalar"; }
 
   typedef ChimeraTK::Boolean minimumUserType;
 
   bool increment{false};
 
-  void setValue(minimumUserType v) { ThreadedTangoServer::self->ourDevice->attr_BooleanScalar_read[0] = v; }
+  void setValue(minimumUserType v) {
+    try {
+      auto attr = Tango::DeviceAttribute(writePath(), bool(v));
+      ThreadedTangoServer::self->remoteProxy->write_attribute(attr);
+    }
+    catch(CORBA::Exception& ex) {
+      Tango::Except::print_exception(ex);
+      assert(false);
+    }
+  }
 
-  minimumUserType getValue() { return ThreadedTangoServer::self->ourDevice->attr_BooleanScalar_read[0]; }
+  minimumUserType getValue() {
+    Tango::DevBoolean value;
+    try {
+      auto attr = ThreadedTangoServer::self->remoteProxy->read_attribute(readPath());
+      attr >> value;
+    }
+    catch(CORBA::Exception& ex) {
+      Tango::Except::print_exception(ex);
+      assert(false);
+    }
+
+    return value;
+  }
 };
 
 struct RegSomeRoBool : ScalarDefaults<RegSomeRoBool> {
   std::string path() { return "BooleanRoScalar"; }
+  std::string writePath() { return "BooleanScalar"; }
+  std::string readPath() { return "BooleanScalar"; }
 
   typedef ChimeraTK::Boolean minimumUserType;
 
@@ -420,13 +471,24 @@ struct RegSomeRoBool : ScalarDefaults<RegSomeRoBool> {
 
   static constexpr auto capabilities = ScalarDefaults<RegSomeInt>::capabilities.enableTestReadOnly();
 
-  void setValue(minimumUserType v) { ThreadedTangoServer::self->ourDevice->attr_BooleanRoScalar_read[0] = v; }
+  void setValue(minimumUserType v) {
+    auto attr = Tango::DeviceAttribute(readPath(), bool(v));
+    ThreadedTangoServer::self->remoteProxy->write_attribute(attr);
+  }
 
-  minimumUserType getValue() { return ThreadedTangoServer::self->ourDevice->attr_BooleanRoScalar_read[0]; }
+  minimumUserType getValue() {
+    Tango::DevBoolean value;
+    auto attr = ThreadedTangoServer::self->remoteProxy->read_attribute(writePath());
+    attr >> value;
+
+    return value;
+  }
 };
 
 struct RegSomeWoBool : ScalarDefaults<RegSomeWoBool> {
   std::string path() { return "BooleanWoScalar"; }
+  std::string writePath() { return "BooleanScalar"; }
+  std::string readPath() { return "BooleanScalar"; }
 
   typedef ChimeraTK::Boolean minimumUserType;
 
@@ -434,24 +496,32 @@ struct RegSomeWoBool : ScalarDefaults<RegSomeWoBool> {
 
   static constexpr auto capabilities = ScalarDefaults<RegSomeInt>::capabilities.enableTestWriteOnly();
 
-  void setValue(minimumUserType v) { ThreadedTangoServer::self->ourDevice->attr_BooleanRoScalar_read[0] = v; }
+  void setValue(minimumUserType v) {
+    auto attr = Tango::DeviceAttribute(writePath(), bool(v));
+    ThreadedTangoServer::self->remoteProxy->write_attribute(attr);
+  }
 
-  minimumUserType getValue() { return ThreadedTangoServer::self->ourDevice->attr_BooleanRoScalar_read[0]; }
+  minimumUserType getValue() {
+    Tango::DevBoolean value;
+    auto attr = ThreadedTangoServer::self->remoteProxy->read_attribute(readPath());
+    attr >> value;
+
+    return value;
+  }
 };
 
 struct RegSomeString : ScalarDefaults<RegSomeString> {
   std::string path() { return "StringScalar"; }
+  std::string writePath() { return "StringScalar"; }
+  std::string readPath() { return "StringScalar"; }
 
   typedef std::string minimumUserType;
 
   std::string increment;
 
   void setValue(minimumUserType v) {
-    if(ThreadedTangoServer::self->ourDevice->attr_StringScalar_read[0] != nullptr) {
-      Tango::string_free(ThreadedTangoServer::self->ourDevice->attr_StringScalar_read[0]);
-    }
-
-    ThreadedTangoServer::self->ourDevice->attr_StringScalar_read[0] = Tango::string_dup(v.c_str());
+    auto attr = Tango::DeviceAttribute(writePath(), v);
+    ThreadedTangoServer::self->remoteProxy->write_attribute(attr);
   }
 
   template<typename UserType>
@@ -459,7 +529,13 @@ struct RegSomeString : ScalarDefaults<RegSomeString> {
     assert(false);
   }
 
-  minimumUserType getValue() { return std::string(ThreadedTangoServer::self->ourDevice->attr_StringScalar_read[0]); }
+  minimumUserType getValue() {
+    std::string value;
+    auto attr = ThreadedTangoServer::self->remoteProxy->read_attribute(readPath());
+    attr >> value;
+
+    return value;
+  }
 
   size_t someValue{42};
 };
@@ -472,17 +548,41 @@ std::vector<std::vector<std::string>> RegSomeString::generateValue<std::string>(
 
 struct RegSomeIntArray : ArrayDefaults<RegSomeIntArray> {
   std::string path() { return "IntSpectrum"; }
+  std::string writePath() { return "IntSpectrum"; }
+  std::string readPath() { return "IntSpectrum"; }
   size_t nElementsPerChannel() { return 10; }
   typedef int32_t minimumUserType;
   int32_t increment{12};
 
-  void setValue(int i, Tango::DevLong v) { ThreadedTangoServer::self->ourDevice->attr_IntSpectrum_read[i] = v; }
+  void setValue(int i, Tango::DevLong v) {
+    try {
+      auto attrRead = ThreadedTangoServer::self->remoteProxy->read_attribute(readPath());
+
+      std::vector<Tango::DevLong> values(10, {});
+      attrRead >> values;
+
+      values[i] = v;
+      // for some reason, the vector returned by Tango is one too large
+      values.resize(10);
+
+      auto attr = Tango::DeviceAttribute(writePath(), values);
+      ThreadedTangoServer::self->remoteProxy->write_attribute(attr);
+    }
+    catch(CORBA::Exception& ex) {
+      Tango::Except::print_exception(ex);
+      assert(false);
+    }
+  }
 
   void setRemoteValue() { setRemoteValueImpl<Tango::DevLong>(); }
 
   Tango::DevLong getValue(int i) {
-    auto val = ThreadedTangoServer::self->ourDevice->attr_IntSpectrum_read[i];
-    return val;
+    auto attrRead = ThreadedTangoServer::self->remoteProxy->read_attribute(readPath());
+
+    std::vector<Tango::DevLong> values;
+    attrRead >> values;
+
+    return values[i];
   }
 };
 
@@ -490,23 +590,37 @@ struct RegSomeStringArray : ArrayDefaults<RegSomeStringArray> {
   using ArrayDefaults<RegSomeStringArray>::generateValue;
 
   std::string path() { return "StringSpectrum"; }
+  std::string writePath() { return "StringSpectrum"; }
+  std::string readPath() { return "StringSpectrum"; }
+
   size_t nElementsPerChannel() { return 10; }
   using minimumUserType = std::string;
   int32_t increment{12};
 
   void setValue(int i, std::string v) {
-    if(ThreadedTangoServer::self->ourDevice->attr_StringSpectrum_read[i] != nullptr) {
-      Tango::string_free(ThreadedTangoServer::self->ourDevice->attr_StringSpectrum_read[i]);
-    }
+    auto attrRead = ThreadedTangoServer::self->remoteProxy->read_attribute(readPath());
 
-    ThreadedTangoServer::self->ourDevice->attr_StringSpectrum_read[i] = Tango::string_dup(v.c_str());
+    std::vector<std::string> values;
+    attrRead >> values;
+
+    values[i] = v;
+
+    // for some reason, the vector returned by Tango is one too large
+    values.resize(10);
+
+    auto attr = Tango::DeviceAttribute(writePath(), values);
+    ThreadedTangoServer::self->remoteProxy->write_attribute(attr);
   }
 
   void setRemoteValue() { setRemoteValueImpl<std::string>(); }
 
   std::string getValue(int i) {
-    auto val = ThreadedTangoServer::self->ourDevice->attr_StringSpectrum_read[i];
-    return val;
+    auto attrRead = ThreadedTangoServer::self->remoteProxy->read_attribute(readPath());
+
+    std::vector<std::string> values;
+    attrRead >> values;
+
+    return values[i];
   }
 
   template<typename UserType>

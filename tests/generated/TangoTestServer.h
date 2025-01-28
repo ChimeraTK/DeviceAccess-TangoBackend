@@ -79,32 +79,14 @@ public:
 //	Attribute data members
 public:
 	Tango::DevDouble	*attr_DoubleScalar_read;
-	Tango::DevDouble	*attr_DoubleRoScalar_read;
-        Tango::DevDouble	*attr_DoubleWoScalar_read;
         Tango::DevFloat	*attr_FloatScalar_read;
-	Tango::DevFloat	*attr_FloatRoScalar_read;
-	Tango::DevFloat	*attr_FloatWoScalar_read;
 	Tango::DevLong	*attr_IntScalar_read;
-	Tango::DevLong	*attr_IntRoScalar_read;
-        Tango::DevLong	*attr_IntWoScalar_read;
         Tango::DevString	*attr_StringScalar_read;
-	Tango::DevString	*attr_StringRoScalar_read;
-	Tango::DevString	*attr_StringWoScalar_read;
 	Tango::DevBoolean	*attr_BooleanScalar_read;
-	Tango::DevBoolean	*attr_BooleanRoScalar_read;
-        Tango::DevBoolean	*attr_BooleanWoScalar_read;
         Tango::DevDouble	*attr_DoubleSpectrum_read;
-	Tango::DevDouble	*attr_DoubleRoSpectrum_read;
-        Tango::DevDouble	*attr_DoubleWoSpectrum_read;
         Tango::DevFloat	*attr_FloatSpectrum_read;
-	Tango::DevFloat	*attr_FloatRoSpectrum_read;
-	Tango::DevFloat	*attr_FloatWoSpectrum_read;
 	Tango::DevLong	*attr_IntSpectrum_read;
-	Tango::DevLong	*attr_IntRoSpectrum_read;
-        Tango::DevLong	*attr_IntWoSpectrum_read;
         Tango::DevString	*attr_StringSpectrum_read;
-	Tango::DevString	*attr_StringRoSpectrum_read;
-	Tango::DevString	*attr_StringWoSpectrum_read;
 
 //	Constructors and destructors
 public:
