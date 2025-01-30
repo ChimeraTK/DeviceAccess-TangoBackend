@@ -15,7 +15,7 @@ namespace ChimeraTK {
    public:
     explicit OfflineCache(const std::string& cacheFilePath) : _cacheFilePath(cacheFilePath) {}
 
-    TangoRegisterCatalogue&& read() {
+    TangoRegisterCatalogue read() {
       std::ifstream f(_cacheFilePath);
       nlohmann::json data;
       try {
@@ -31,7 +31,7 @@ namespace ChimeraTK {
         throw ChimeraTK::logic_error("malformed cache file, missing \"catalogue\" " + _cacheFilePath);
       }
 
-      auto catalogue = std::make_unique<TangoRegisterCatalogue>();
+      auto catalogue = TangoRegisterCatalogue();
       for(auto& reg : registers) {
         Tango::AttributeInfoEx info;
         info.name = reg["name"].get<std::string>();
@@ -48,10 +48,10 @@ namespace ChimeraTK {
         else if(info.max_dim_x > 1 && info.max_dim_y > 0) {
           info.data_format = Tango::AttrDataFormat::IMAGE;
         }
-        catalogue->addRegister(TangoRegisterInfo(info));
+        catalogue.addRegister(TangoRegisterInfo(info));
       }
 
-      return std::move(*catalogue.release());
+      return catalogue;
     }
 
    private:
