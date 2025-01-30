@@ -125,9 +125,20 @@ namespace ChimeraTK {
 
     std::vector<TangoType> value(this->registerInfo.getNumberOfElements());
 
-    std::transform(this->buffer_2D[0].begin(), this->buffer_2D[0].end(), value.begin(),
-        ChimeraTK::userTypeToUserType<TangoType, UserType>);
-
+    if constexpr(std::is_same_v<TangoType, Tango::DevEnum>) {
+      std::transform(this->buffer_2D[0].begin(), this->buffer_2D[0].end(), value.begin(),
+          ChimeraTK::userTypeToNumeric<Tango::DevEnum, UserType>);
+    }
+    if constexpr(std::is_same_v<TangoType, Tango::DevState>) {
+      // Technically we should never end up here, unless someone added an additional attribute
+      // That uses DevState and isn't the built-in "State" which is r/o
+      std::transform(this->buffer_2D[0].begin(), this->buffer_2D[0].end(), value.begin(),
+          [](UserType& v) { return static_cast<Tango::DevState>(ChimeraTK::userTypeToNumeric<int, UserType>(v)); });
+    }
+    else {
+      std::transform(this->buffer_2D[0].begin(), this->buffer_2D[0].end(), value.begin(),
+          ChimeraTK::userTypeToUserType<TangoType, UserType>);
+    }
     this->writeAttribute = Tango::DeviceAttribute(this->registerInfo.attributeInfo.name, value);
   }
 
@@ -147,8 +158,18 @@ namespace ChimeraTK {
     }
 
     auto length = std::min(this->registerInfo.getNumberOfElements(), static_cast<unsigned int>(value.size()));
-    std::transform(value.begin(), std::next(value.begin(), length), this->buffer_2D[0].begin(),
-        ChimeraTK::userTypeToUserType<UserType, TangoType>);
+    if constexpr(std::is_same_v<TangoType, Tango::DevEnum>) {
+      std::transform(value.begin(), std::next(value.begin(), length), this->buffer_2D[0].begin(),
+          ChimeraTK::numericToUserType<UserType, Tango::DevEnum>);
+    }
+    if constexpr(std::is_same_v<TangoType, Tango::DevState>) {
+      std::transform(value.begin(), std::next(value.begin(), length), this->buffer_2D[0].begin(),
+          [](TangoType& v) { return ChimeraTK::numericToUserType<UserType, int>(static_cast<int>(v)); });
+    }
+    else {
+      std::transform(value.begin(), std::next(value.begin(), length), this->buffer_2D[0].begin(),
+          ChimeraTK::userTypeToUserType<UserType, TangoType>);
+    }
 
     // FIXME: We currently have no means of correlating data from Tango, so everything gets a new version number
     TransferElement::_versionNumber = {};

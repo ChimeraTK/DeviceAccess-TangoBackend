@@ -6,23 +6,22 @@
 #include "OfflineCache.h"
 #include "RegisterCatalogue.h"
 #include "TangoRegisterAccessor.h"
+#include <tango/common/tango_const.h>
 #include <tango/tango.h>
 
 #include <ChimeraTK/BackendFactory.h>
+#include <ChimeraTK/Exception.h>
 #include <ChimeraTK/MetadataCatalogue.h>
 #include <ChimeraTK/RegisterCatalogue.h>
 
 #include <boost/shared_ptr.hpp>
-
-#include <boost/mpl/list.hpp>
 
 #include <utility>
 
 static struct BackendRegisterer {
   BackendRegisterer() {
     std::cout << "TangoBackend::BackendRegisterer: registering backend type tango" << std::endl;
-    ChimeraTK::BackendFactory::getInstance().registerBackendType(
-        "tango", &ChimeraTK::TangoBackend::createInstance);
+    ChimeraTK::BackendFactory::getInstance().registerBackendType("tango", &ChimeraTK::TangoBackend::createInstance);
   }
 } backendRegisterer;
 
@@ -44,7 +43,8 @@ namespace ChimeraTK {
     return boost::shared_ptr<DeviceBackend>(new TangoBackend(std::move(address), cacheFile));
   }
 
-  TangoBackend::TangoBackend(std::string address, const std::string& cacheFile) : DeviceBackendImpl(), _address(std::move(address)) {
+  TangoBackend::TangoBackend(std::string address, const std::string& cacheFile)
+  : DeviceBackendImpl(), _address(std::move(address)) {
     auto it = _address.find("%23");
     if(it != std::string::npos) {
       _address.replace(it, 3, "#");
@@ -83,8 +83,9 @@ namespace ChimeraTK {
       throw ChimeraTK::runtime_error(message);
     }
     catch(CORBA::Exception& ex) {
-      Tango::Except::print_exception(ex);
-      throw ChimeraTK::runtime_error("jdflöksdjfslödkfj");
+      std::string message = "Cannot connect to " + _address + "for unknown reason";
+      setException(message);
+      throw ChimeraTK::runtime_error(message);
     }
 
     setOpenedAndClearException();
@@ -116,12 +117,57 @@ namespace ChimeraTK {
             p.reset(new TangoBackendRegisterAccessor<UserType, Tango::DevBoolean>(
                 sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
             break;
+          case Tango::DEV_SHORT:
+            p.reset(new TangoBackendRegisterAccessor<UserType, Tango::DevShort>(
+                sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
+            break;
           case Tango::DEV_LONG:
             p.reset(new TangoBackendRegisterAccessor<UserType, Tango::DevLong>(
                 sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
             break;
+          case Tango::DEV_FLOAT:
+            p.reset(new TangoBackendRegisterAccessor<UserType, Tango::DevFloat>(
+                sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
+            break;
+          case Tango::DEV_DOUBLE:
+            p.reset(new TangoBackendRegisterAccessor<UserType, Tango::DevDouble>(
+                sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
+            break;
+          case Tango::DEV_USHORT:
+            p.reset(new TangoBackendRegisterAccessor<UserType, Tango::DevUShort>(
+                sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
+            break;
+          case Tango::DEV_ULONG:
+            p.reset(new TangoBackendRegisterAccessor<UserType, Tango::DevULong>(
+                sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
+            break;
           case Tango::DEV_STRING:
             p.reset(new TangoBackendRegisterAccessor<UserType, std::string>(
+                sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
+            break;
+          case Tango::DEV_STATE:
+            p.reset(new TangoBackendRegisterAccessor<UserType, Tango::DevState>(
+                sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
+            break;
+          case Tango::DEV_UCHAR:
+            p.reset(new TangoBackendRegisterAccessor<UserType, Tango::DevUChar>(
+                sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
+            break;
+          case Tango::DEV_LONG64:
+            p.reset(new TangoBackendRegisterAccessor<UserType, Tango::DevLong64>(
+                sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
+            break;
+          case Tango::DEV_ULONG64:
+            p.reset(new TangoBackendRegisterAccessor<UserType, Tango::DevULong64>(
+                sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
+            break;
+          // Compatibility for old servers that have DEV_INT
+          case 27:
+            p.reset(new TangoBackendRegisterAccessor<UserType, Tango::DevLong>(
+                sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
+            break;
+          case Tango::DEV_ENUM:
+            p.reset(new TangoBackendRegisterAccessor<UserType, Tango::DevEnum>(
                 sharedThis, info, registerPathName, numberOfWords, wordOffsetInRegister, flags));
             break;
           default:
