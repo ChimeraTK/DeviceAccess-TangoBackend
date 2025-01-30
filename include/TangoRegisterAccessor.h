@@ -3,10 +3,13 @@
 #pragma once
 
 #include "TangoBackend.h"
+#include <omniORB4/CORBA.h>
 #include <tango/tango.h>
 
+#include <ChimeraTK/Exception.h>
 #include <ChimeraTK/NDRegisterAccessor.h>
 
+#include <iterator>
 #include <utility>
 
 namespace ChimeraTK {
@@ -19,7 +22,7 @@ namespace ChimeraTK {
     : NDRegisterAccessor<UserType>(registerPathName, flags), backend(std::move(backend_)),
       registerInfo(std::move(info)) {
       auto actualLength = registerInfo.getNumberOfElements();
-      auto elementOffset = wordOffsetInRegister;
+      elementOffset = wordOffsetInRegister;
       auto nElements = numberOfWords;
 
       if(nElements == 0) {
@@ -71,11 +74,16 @@ namespace ChimeraTK {
 
     /// Pointer to the backend
     boost::shared_ptr<TangoBackend> backend;
-    std::shared_ptr<Tango::DeviceProxy> proxy;
     TangoRegisterInfo registerInfo;
-    Tango::DeviceAttribute attr;
+
+    // This will be filled by the readTransfer to be processed in doPostRead
+    Tango::DeviceAttribute readAttribute;
+
+    // This will be filled by preWrite to be sent to the server in doWriteTransfer
     Tango::DeviceAttribute writeAttribute;
     bool isPartial{false};
+
+    size_t elementOffset;
   };
 
   template<typename UserType, typename TangoType>
@@ -85,10 +93,7 @@ namespace ChimeraTK {
     }
 
     try {
-      attr = backend->getDeviceProxy()->read_attribute(registerInfo.attributeInfo.name);
-
-      std::vector<TangoType> value;
-      this->attr >> value;
+      readAttribute = backend->getDeviceProxy()->read_attribute(registerInfo.attributeInfo.name);
     }
     catch(CORBA::Exception& ex) {
       throw ChimeraTK::runtime_error(
@@ -123,20 +128,37 @@ namespace ChimeraTK {
       throw ChimeraTK::logic_error("Try to write read-only register \"" + registerInfo.getRegisterName() + "\".");
     }
 
-    std::vector<TangoType> value(this->registerInfo.getNumberOfElements());
+    std::vector<TangoType> value;
+
+    // Perform read-modify-write
+    if(isPartial) {
+      try {
+        auto attr = backend->getDeviceProxy()->read_attribute(registerInfo.attributeInfo.name);
+        attr >> value;
+      }
+      catch(CORBA::Exception& ex) {
+        throw ChimeraTK::runtime_error(
+            "Failure to read in read-modfiy-write of partial accessor " + registerInfo.getRegisterName());
+      }
+    }
+
+    // Some versions of Tango return one element too much, so we do this unconditionally, even for read-modify-write
+    value.resize(this->registerInfo.getNumberOfElements());
+
+    auto destinationStart = value.begin() + elementOffset;
 
     if constexpr(std::is_same_v<TangoType, Tango::DevEnum>) {
-      std::transform(this->buffer_2D[0].begin(), this->buffer_2D[0].end(), value.begin(),
+      std::transform(this->buffer_2D[0].begin(), this->buffer_2D[0].end(), destinationStart,
           ChimeraTK::userTypeToNumeric<Tango::DevEnum, UserType>);
     }
-    if constexpr(std::is_same_v<TangoType, Tango::DevState>) {
+    else if constexpr(std::is_same_v<TangoType, Tango::DevState>) {
       // Technically we should never end up here, unless someone added an additional attribute
       // That uses DevState and isn't the built-in "State" which is r/o
-      std::transform(this->buffer_2D[0].begin(), this->buffer_2D[0].end(), value.begin(),
+      std::transform(this->buffer_2D[0].begin(), this->buffer_2D[0].end(), destinationStart,
           [](UserType& v) { return static_cast<Tango::DevState>(ChimeraTK::userTypeToNumeric<int, UserType>(v)); });
     }
     else {
-      std::transform(this->buffer_2D[0].begin(), this->buffer_2D[0].end(), value.begin(),
+      std::transform(this->buffer_2D[0].begin(), this->buffer_2D[0].end(), destinationStart,
           ChimeraTK::userTypeToUserType<TangoType, UserType>);
     }
     this->writeAttribute = Tango::DeviceAttribute(this->registerInfo.attributeInfo.name, value);
@@ -151,24 +173,26 @@ namespace ChimeraTK {
 
     std::vector<TangoType> value;
     try {
-      this->attr >> value;
+      this->readAttribute >> value;
     }
     catch(Tango::DevFailed& ex) {
       throw ChimeraTK::runtime_error("Failed to read from attribute " + registerInfo.attributeInfo.name + ": ");
     }
 
-    auto length = std::min(this->registerInfo.getNumberOfElements(), static_cast<unsigned int>(value.size()));
+    auto length = std::min(this->buffer_2D[0].size(), value.size());
+    auto sourceStart = value.begin() + elementOffset;
+    auto sourceEnd = sourceStart + length;
     if constexpr(std::is_same_v<TangoType, Tango::DevEnum>) {
-      std::transform(value.begin(), std::next(value.begin(), length), this->buffer_2D[0].begin(),
-          ChimeraTK::numericToUserType<UserType, Tango::DevEnum>);
+      std::transform(
+          sourceStart, sourceEnd, this->buffer_2D[0].begin(), ChimeraTK::numericToUserType<UserType, Tango::DevEnum>);
     }
     if constexpr(std::is_same_v<TangoType, Tango::DevState>) {
-      std::transform(value.begin(), std::next(value.begin(), length), this->buffer_2D[0].begin(),
+      std::transform(sourceStart, sourceEnd, this->buffer_2D[0].begin(),
           [](TangoType& v) { return ChimeraTK::numericToUserType<UserType, int>(static_cast<int>(v)); });
     }
     else {
-      std::transform(value.begin(), std::next(value.begin(), length), this->buffer_2D[0].begin(),
-          ChimeraTK::userTypeToUserType<UserType, TangoType>);
+      std::transform(
+          sourceStart, sourceEnd, this->buffer_2D[0].begin(), ChimeraTK::userTypeToUserType<UserType, TangoType>);
     }
 
     // FIXME: We currently have no means of correlating data from Tango, so everything gets a new version number
