@@ -491,6 +491,23 @@ public:
 		{return (static_cast<TangoTestServer *>(dev))->is_StringWoSpectrum_allowed(ty);}
 };
 
+//	Attribute StringSpectrum class definition
+class BooleanSpectrumAttrib: public ExceptionSpectrumAttribute
+{
+public:
+	// Constants for StringSpectrum attribute
+	constexpr static long X_DATA_SIZE = 10;
+	BooleanSpectrumAttrib():ExceptionSpectrumAttribute("BooleanSpectrum",
+			Tango::DEV_BOOLEAN, Tango::READ_WRITE, BooleanSpectrumAttrib::X_DATA_SIZE) {};
+	~BooleanSpectrumAttrib() {};
+	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
+		{ExceptionSpectrumAttribute::read(dev, att); (static_cast<TangoTestServer *>(dev))->read_BooleanSpectrum(att);}
+	virtual void write(Tango::DeviceImpl *dev,Tango::WAttribute &att)
+		{ExceptionSpectrumAttribute::write(dev, att); (static_cast<TangoTestServer *>(dev))->write_BooleanSpectrum(att);}
+	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
+		{return (static_cast<TangoTestServer *>(dev))->is_BooleanSpectrum_allowed(ty);}
+};
+
 
 /**
  *	The TangoTestServerClass singleton definition

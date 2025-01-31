@@ -972,6 +972,27 @@ void TangoTestServerClass::attribute_factory(std::vector<Tango::Attr *> &att_lis
 
 	att_list.push_back(stringwospectrum);
 
+	BooleanSpectrumAttrib	*booleanspectrum = new BooleanSpectrumAttrib();
+	Tango::UserDefaultAttrProp	booleanspectrum_prop;
+	//	description	not set for StringSpectrum
+	//	label	not set for StringSpectrum
+	//	unit	not set for StringSpectrum
+	//	standard_unit	not set for StringSpectrum
+	//	display_unit	not set for StringSpectrum
+	//	format	not set for StringSpectrum
+	//	max_value	not set for StringSpectrum
+	//	min_value	not set for StringSpectrum
+	//	max_alarm	not set for StringSpectrum
+	//	min_alarm	not set for StringSpectrum
+	//	max_warning	not set for StringSpectrum
+	//	min_warning	not set for StringSpectrum
+	//	delta_t	not set for StringSpectrum
+	//	delta_val	not set for StringSpectrum
+	booleanspectrum->set_default_properties(booleanspectrum_prop);
+	//	Not Polled
+	booleanspectrum->set_disp_level(Tango::OPERATOR);
+	//	Not Memorized
+	att_list.push_back(booleanspectrum);
 
 	//	Create a list of static attributes
 	create_static_attribute_list(get_class_attr()->get_attr_list());

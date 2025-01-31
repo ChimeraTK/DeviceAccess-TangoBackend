@@ -34,9 +34,10 @@
 //        (Program Obviously used to Generate tango Object)
 //=============================================================================
 
-
 #include "TangoTestServer.h"
+
 #include "TangoTestServerClass.h"
+#include <tango/idl/tango.h>
 /* clang-format off */
 /*----- PROTECTED REGION END -----*/	//	TangoTestServer.cpp
 
@@ -162,6 +163,7 @@ void TangoTestServer::delete_device()
 	delete[] attr_FloatSpectrum_read;
 	delete[] attr_IntSpectrum_read;
 	delete[] attr_StringSpectrum_read;
+	delete[] attr_BooleanSpectrum_read;
 }
 
 //--------------------------------------------------------
@@ -190,6 +192,7 @@ void TangoTestServer::init_device()
 	attr_FloatSpectrum_read = new Tango::DevFloat[10];
         attr_IntSpectrum_read = new Tango::DevLong[10];
         attr_StringSpectrum_read = new Tango::DevString[10];
+	attr_BooleanSpectrum_read = new Tango::DevBoolean[10];
         /*----- PROTECTED REGION ID(TangoTestServer::init_device) ENABLED START -----*/
 	/* clang-format on */
         *attr_DoubleScalar_read = 0.0;
@@ -1068,6 +1071,51 @@ void TangoTestServer::write_StringWoSpectrum(Tango::WAttribute &attr)
 	/* clang-format off */
 	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::write_StringWoSpectrum
 }
+
+/**
+ *	Read attribute BooleanSpectrum related method
+ *
+ *
+ *	Data type:	Tango::DevBoolean
+ *	Attr type:	Spectrum max = 10
+ */
+//--------------------------------------------------------
+void TangoTestServer::read_BooleanSpectrum(Tango::Attribute &attr)
+{
+	DEBUG_STREAM << "TangoTestServer::read_BooleanSpectrum(Tango::Attribute &attr) entering... " << std::endl;
+	/*----- PROTECTED REGION ID(TangoTestServer::read_StringSpectrum) ENABLED START -----*/
+  /* clang-format on */
+  //	Set the attribute value
+  attr.set_value(attr_BooleanSpectrum_read, BooleanSpectrumAttrib::X_DATA_SIZE);
+  /* clang-format off */
+	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::read_StringSpectrum
+}
+//--------------------------------------------------------
+/**
+ *	Write attribute StringSpectrum related method
+ *
+ *
+ *	Data type:	Tango::DevString
+ *	Attr type:	Spectrum max = 10
+ */
+//--------------------------------------------------------
+void TangoTestServer::write_BooleanSpectrum(Tango::WAttribute &attr)
+{
+	DEBUG_STREAM << "TangoTestServer::write_BooleanSpectrum(Tango::WAttribute &attr) entering... " << std::endl;
+	//	Retrieve number of write values
+  int	w_length = attr.get_write_value_length();
+
+	//	Retrieve pointer on write values (Do not delete !)
+	const Tango::DevBoolean	*w_val;
+	attr.get_write_value(w_val);
+	/*----- PROTECTED REGION ID(TangoTestServer::write_StringSpectrum) ENABLED START -----*/
+  /* clang-format on */
+  for(int i = 0; i < w_length; i++) {
+    attr_BooleanSpectrum_read[i] = w_val[i];
+  }
+}
+/* clang-format off */
+	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::write_StringSpectrum
 
 //--------------------------------------------------------
 /**

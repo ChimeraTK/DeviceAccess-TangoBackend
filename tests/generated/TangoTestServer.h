@@ -87,6 +87,7 @@ public:
         Tango::DevFloat	*attr_FloatSpectrum_read;
 	Tango::DevLong	*attr_IntSpectrum_read;
         Tango::DevString	*attr_StringSpectrum_read;
+Tango::DevBoolean *attr_BooleanSpectrum_read;
 
 //	Constructors and destructors
 public:
@@ -407,6 +408,17 @@ public:
 	virtual void write_StringWoSpectrum(Tango::WAttribute &attr);
 	virtual bool is_StringWoSpectrum_allowed(Tango::AttReqType type);
 
+
+/**
+ *	Attribute BooleanSpectrum related methods
+ *
+ *
+ *	Data type:  Tango::DevBoolean
+ *	Attr type:	Spectrum max = 10
+ */
+	virtual void read_BooleanSpectrum(Tango::Attribute &attr);
+	virtual void write_BooleanSpectrum(Tango::WAttribute &attr);
+	virtual bool is_BooleanSpectrum_allowed(Tango::AttReqType type);
 
 	//--------------------------------------------------------
 	/**

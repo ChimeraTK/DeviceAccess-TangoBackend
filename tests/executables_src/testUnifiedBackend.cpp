@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
+#include <tango/idl/tango.h>
+
+#include <ChimeraTK/SupportedUserTypes.h>
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE testUnifiedBackendTest
 
@@ -143,12 +146,6 @@ void ThreadedTangoServer::start() {
   catch(...) {
     abort();
   }
-
-  std::cerr << "=====> Child is " << tangoServerProcess.id() << ", Port is " << port() << std::endl;
-
-  int i;
-
-  std::cout << "Generating proxy" << std::endl;
 
   auto url = getClientUrl();
   url.replace(url.find("%23"), 3, "#");
@@ -644,6 +641,69 @@ std::vector<std::vector<std::string>> RegSomeStringArray::generateValue<std::str
   return {val};
 }
 
+struct RegSomeBooleanArray : ArrayDefaults<RegSomeBooleanArray> {
+  using ArrayDefaults<RegSomeBooleanArray>::generateValue;
+
+  std::string path() { return "BooleanSpectrum"; }
+  std::string writePath() { return "BooleanSpectrum"; }
+  std::string readPath() { return "BooleanSpectrum"; }
+
+  size_t nElementsPerChannel() { return 10; }
+  using minimumUserType = ChimeraTK::Boolean;
+  int32_t increment{12};
+
+  void setValue(int i, bool v) {
+    auto attrRead = ThreadedTangoServer::self->remoteProxy->read_attribute(readPath());
+
+    std::vector<Tango::DevBoolean> values;
+    try {
+      attrRead >> values;
+    }
+    catch(Tango::DevFailed& ex) {
+      Tango::Except::print_exception(ex);
+    }
+
+    values[i] = v;
+
+    // for some reason, the vector returned by Tango is one too large
+    values.resize(10);
+
+    auto attr = Tango::DeviceAttribute(writePath(), values);
+    ThreadedTangoServer::self->remoteProxy->write_attribute(attr);
+  }
+
+  void setRemoteValue() { setRemoteValueImpl<ChimeraTK::Boolean>(); }
+
+  ChimeraTK::Boolean getValue(int i) {
+    auto attrRead = ThreadedTangoServer::self->remoteProxy->read_attribute(readPath());
+
+    std::vector<Tango::DevBoolean> values;
+    attrRead >> values;
+
+    return {values[i]};
+  }
+
+  template<typename UserType>
+  std::vector<std::vector<UserType>> generateValue() {
+    assert(false);
+  }
+
+  size_t someValue{23};
+};
+
+template<>
+std::vector<std::vector<ChimeraTK::Boolean>> RegSomeBooleanArray::generateValue<ChimeraTK::Boolean>() {
+  std::vector<ChimeraTK::Boolean> value;
+  ++someValue;
+
+  std::vector<ChimeraTK::Boolean> val;
+  val.reserve(derived->nElementsPerChannel());
+  for(size_t i = 0; i < derived->nElementsPerChannel(); ++i) {
+    val.emplace_back((i % 2) == 1);
+  }
+  return {val};
+}
+
 /**********************************************************************************************************************/
 
 BOOST_AUTO_TEST_CASE(unifiedBackendTest) {
@@ -657,6 +717,7 @@ BOOST_AUTO_TEST_CASE(unifiedBackendTest) {
                  .addRegister<RegSomeString>()
                  .addRegister<RegSomeIntArray>()
                  .addRegister<RegSomeStringArray>()
+                 .addRegister<RegSomeBooleanArray>()
 #if 0
                  .addRegister<RegSomeFloat>()
                  .addRegister<RegSomeDouble>()

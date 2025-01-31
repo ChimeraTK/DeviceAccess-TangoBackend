@@ -570,6 +570,28 @@ bool TangoTestServer::is_StringWoSpectrum_allowed(TANGO_UNUSED(Tango::AttReqType
 	return true;
 }
 
+//--------------------------------------------------------
+/**
+ *	Method      : TangoTestServer::is_BooleanSpectrum_allowed()
+ * Description:  Execution allowed for StringSpectrum attribute
+ */
+//--------------------------------------------------------
+bool TangoTestServer::is_BooleanSpectrum_allowed(TANGO_UNUSED(Tango::AttReqType type))
+{
+	//	Not any excluded states for BooleanSpectrum attribute in Write access.
+	/*----- PROTECTED REGION ID(TangoTestServer::StringSpectrumStateAllowed_WRITE) ENABLED START -----*/
+  /* clang-format on */
+  /* clang-format off */
+	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::StringSpectrumStateAllowed_WRITE
+
+	//	Not any excluded states for StringSpectrum attribute in read access.
+	/*----- PROTECTED REGION ID(TangoTestServer::StringSpectrumStateAllowed_READ) ENABLED START -----*/
+  /* clang-format on */
+  /* clang-format off */
+	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::StringSpectrumStateAllowed_READ
+	return true;
+}
+
 
 //=================================================
 //		Commands Allowed Methods
