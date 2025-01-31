@@ -4,10 +4,12 @@
 
 #include "TangoBackend.h"
 #include <omniORB4/CORBA.h>
+#include <tango/idl/tango.h>
 #include <tango/tango.h>
 
 #include <ChimeraTK/Exception.h>
 #include <ChimeraTK/NDRegisterAccessor.h>
+#include <ChimeraTK/TransferElement.h>
 
 #include <iterator>
 #include <utility>
@@ -86,6 +88,8 @@ namespace ChimeraTK {
     size_t elementOffset;
   };
 
+  /********************************************************************************************************************/
+
   template<typename UserType, typename TangoType>
   void TangoBackendRegisterAccessor<UserType, TangoType>::doReadTransferSynchronously() {
     if(!backend->isFunctional()) {
@@ -100,6 +104,8 @@ namespace ChimeraTK {
           "Failed to read from attribute " + registerInfo.attributeInfo.name + ": " + ex._name());
     }
   }
+
+  /********************************************************************************************************************/
 
   template<typename UserType, typename TangoType>
   bool TangoBackendRegisterAccessor<UserType, TangoType>::doWriteTransfer(VersionNumber) {
@@ -117,6 +123,8 @@ namespace ChimeraTK {
 
     return false;
   }
+
+  /********************************************************************************************************************/
 
   template<typename UserType, typename TangoType>
   void TangoBackendRegisterAccessor<UserType, TangoType>::doPreWrite(TransferType type, VersionNumber version) {
@@ -162,7 +170,13 @@ namespace ChimeraTK {
           ChimeraTK::userTypeToUserType<TangoType, UserType>);
     }
     this->writeAttribute = Tango::DeviceAttribute(this->registerInfo.attributeInfo.name, value);
+
+    if(this->_dataValidity == DataValidity::faulty) {
+      this->writeAttribute.quality = Tango::AttrQuality::ATTR_INVALID;
+    }
   }
+
+  /********************************************************************************************************************/
 
   template<typename UserType, typename TangoType>
   void TangoBackendRegisterAccessor<UserType, TangoType>::doPostRead(TransferType type, bool hasNewData) {
@@ -197,6 +211,12 @@ namespace ChimeraTK {
 
     // FIXME: We currently have no means of correlating data from Tango, so everything gets a new version number
     TransferElement::_versionNumber = {};
+
+    // FIXME: Not really sure if CHANGING is also valid, but it is definitely more valid than all the others.
+    TransferElement::_dataValidity = (this->readAttribute.quality == Tango::AttrQuality::ATTR_VALID ||
+                                         this->readAttribute.quality == Tango::AttrQuality::ATTR_CHANGING) ?
+        DataValidity::ok :
+        DataValidity::faulty;
   }
 
 } // namespace ChimeraTK
