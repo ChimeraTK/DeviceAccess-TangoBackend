@@ -32,24 +32,24 @@ namespace ChimeraTK {
       std::string address, [[maybe_unused]] std::map<std::string, std::string> parameters) {
     // This is from public API, cannot change currently
     // NOLINTNEXTLINE(performance-unnecessary-value-param)
-    std::string cacheFile;
-    try {
-      cacheFile = parameters.at("cacheFile");
-    }
-    catch(std::out_of_range&) {
-      throw ChimeraTK::logic_error("Missing mandatory parameter: cacheFile");
+    std::optional<std::string> cacheFile;
+    auto it = parameters.find("cacheFile");
+    if(it != parameters.end()) {
+      cacheFile = it->second;
     }
 
     return boost::shared_ptr<DeviceBackend>(new TangoBackend(std::move(address), cacheFile));
   }
 
-  TangoBackend::TangoBackend(std::string address, const std::string& cacheFile)
+  TangoBackend::TangoBackend(std::string address, std::optional<std::string> cacheFile)
   : DeviceBackendImpl(), _address(std::move(address)) {
     auto it = _address.find("%23");
     if(it != std::string::npos) {
       _address.replace(it, 3, "#");
     }
-    _registerCatalogue = OfflineCache(cacheFile).read();
+    if(cacheFile) {
+      _registerCatalogue = OfflineCache(cacheFile.value()).read();
+    }
     FILL_VIRTUAL_FUNCTION_TEMPLATE_VTABLE(getRegisterAccessor_impl);
   }
 
