@@ -210,6 +210,7 @@ void TangoTestServer::init_device()
         std::fill(attr_IntSpectrum_read, attr_IntSpectrum_read + 10, 0);
         /* clang-format off */
 	/*----- PROTECTED REGION END -----*/	//	TangoTestServer::init_device
+	set_state(Tango::DevState::RUNNING);
 }
 
 
