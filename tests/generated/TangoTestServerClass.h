@@ -86,6 +86,27 @@ class ExceptionSpectrumAttribute : public Tango::SpectrumAttr {
   }
 };
 
+class FaultAttribute : public ExceptionAttribute {
+	public:
+	FaultAttribute(Tango::AttrQuality setQuality, const std::string& attributeName) : ExceptionAttribute(attributeName.c_str(),
+			Tango::DEV_ULONG64, Tango::READ), quality(setQuality) {
+			}
+
+	void read(Tango::DeviceImpl *dev, Tango::Attribute &att) override {
+		ExceptionAttribute::read(dev, att);
+		data = static_cast<Tango::DevULong64>(time(nullptr));
+		att.set_value(&data);
+		att.set_quality(quality);
+	}
+
+	bool is_allowed(Tango::DeviceImpl*, Tango::AttReqType) override {
+		return true;
+	}
+
+	Tango::AttrQuality quality{Tango::AttrQuality::ATTR_VALID};
+	Tango::DevULong64 data{0};
+};
+
 /* clang-format off */
 /*----- PROTECTED REGION END -----*/	//	TangoTestServerClass::classes for dynamic creation
 

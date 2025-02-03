@@ -170,10 +170,6 @@ namespace ChimeraTK {
           ChimeraTK::userTypeToUserType<TangoType, UserType>);
     }
     this->writeAttribute = Tango::DeviceAttribute(this->registerInfo.attributeInfo.name, value);
-
-    if(this->_dataValidity == DataValidity::faulty) {
-      this->writeAttribute.quality = Tango::AttrQuality::ATTR_INVALID;
-    }
   }
 
   /********************************************************************************************************************/
@@ -185,28 +181,31 @@ namespace ChimeraTK {
       return;
     }
 
-    std::vector<TangoType> value;
-    try {
-      this->readAttribute >> value;
-    }
-    catch(Tango::DevFailed& ex) {
-      throw ChimeraTK::runtime_error("Failed to read from attribute " + registerInfo.attributeInfo.name + ": ");
-    }
+    // If the Attribute Quality is invalid, data extraction will not work. There is no data to read.
+    if(this->readAttribute.get_quality() != Tango::AttrQuality::ATTR_INVALID) {
+      std::vector<TangoType> value;
+      try {
+        this->readAttribute >> value;
+      }
+      catch(Tango::DevFailed& ex) {
+        throw ChimeraTK::runtime_error("Failed to read from attribute " + registerInfo.attributeInfo.name);
+      }
 
-    auto length = std::min(this->buffer_2D[0].size(), value.size());
-    auto sourceStart = value.begin() + elementOffset;
-    auto sourceEnd = sourceStart + length;
-    if constexpr(std::is_same_v<TangoType, Tango::DevEnum>) {
-      std::transform(
-          sourceStart, sourceEnd, this->buffer_2D[0].begin(), ChimeraTK::numericToUserType<UserType, Tango::DevEnum>);
-    }
-    if constexpr(std::is_same_v<TangoType, Tango::DevState>) {
-      std::transform(sourceStart, sourceEnd, this->buffer_2D[0].begin(),
-          [](TangoType& v) { return ChimeraTK::numericToUserType<UserType, int>(static_cast<int>(v)); });
-    }
-    else {
-      std::transform(
-          sourceStart, sourceEnd, this->buffer_2D[0].begin(), ChimeraTK::userTypeToUserType<UserType, TangoType>);
+      auto length = std::min(this->buffer_2D[0].size(), value.size());
+      auto sourceStart = value.begin() + elementOffset;
+      auto sourceEnd = sourceStart + length;
+      if constexpr(std::is_same_v<TangoType, Tango::DevEnum>) {
+        std::transform(
+            sourceStart, sourceEnd, this->buffer_2D[0].begin(), ChimeraTK::numericToUserType<UserType, Tango::DevEnum>);
+      }
+      if constexpr(std::is_same_v<TangoType, Tango::DevState>) {
+        std::transform(sourceStart, sourceEnd, this->buffer_2D[0].begin(),
+            [](TangoType& v) { return ChimeraTK::numericToUserType<UserType, int>(static_cast<int>(v)); });
+      }
+      else {
+        std::transform(
+            sourceStart, sourceEnd, this->buffer_2D[0].begin(), ChimeraTK::userTypeToUserType<UserType, TangoType>);
+      }
     }
 
     // FIXME: We currently have no means of correlating data from Tango, so everything gets a new version number

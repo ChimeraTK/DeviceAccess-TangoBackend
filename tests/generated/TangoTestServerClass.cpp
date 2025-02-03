@@ -336,9 +336,41 @@ for (unsigned long i=1 ; i<=devlist_ptr->length() ; i++)
 void TangoTestServerClass::attribute_factory(std::vector<Tango::Attr *> &att_list)
 {
 	/*----- PROTECTED REGION ID(TangoTestServerClass::attribute_factory_before) ENABLED START -----*/
-	/* clang-format on */
-	//	Add your own code
-	/* clang-format off */
+    /* clang-format on */
+    {
+      auto* invalid = new FaultAttribute(Tango::AttrQuality::ATTR_INVALID, "InvalidValue");
+      Tango::UserDefaultAttrProp defaultProperty;
+      invalid->set_default_properties(defaultProperty);
+      invalid->set_disp_level(Tango::DispLevel::OPERATOR);
+      att_list.push_back(invalid);
+    }
+
+    {
+      auto* alarm = new FaultAttribute(Tango::AttrQuality::ATTR_ALARM, "AlarmValue");
+      Tango::UserDefaultAttrProp defaultProperty;
+      alarm->set_default_properties(defaultProperty);
+      alarm->set_disp_level(Tango::DispLevel::OPERATOR);
+      att_list.push_back(alarm);
+    }
+
+    {
+      auto* warning = new FaultAttribute(Tango::AttrQuality::ATTR_WARNING, "WarningValue");
+      Tango::UserDefaultAttrProp defaultProperty;
+      warning->set_default_properties(defaultProperty);
+      warning->set_disp_level(Tango::DispLevel::OPERATOR);
+      att_list.push_back(warning);
+    }
+
+    {
+      auto* changing = new FaultAttribute(Tango::AttrQuality::ATTR_CHANGING, "ChangingValue");
+      Tango::UserDefaultAttrProp defaultProperty;
+      changing->set_default_properties(defaultProperty);
+      changing->set_disp_level(Tango::DispLevel::OPERATOR);
+      att_list.push_back(changing);
+    }
+
+    //	Add your own code
+    /* clang-format off */
 	/*----- PROTECTED REGION END -----*/	//	TangoTestServerClass::attribute_factory_before
 	//	Attribute : DoubleScalar
 	DoubleScalarAttrib	*doublescalar = new DoubleScalarAttrib();
