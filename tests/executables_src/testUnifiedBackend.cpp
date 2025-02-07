@@ -147,13 +147,15 @@ struct RegSomeInt : ScalarDefaults<RegSomeInt> {
   int32_t increment{3};
 
   void setValue(minimumUserType v) {
-    auto attr = Tango::DeviceAttribute(writePath(), v);
+    std::string attrName = writePath();
+    auto attr = Tango::DeviceAttribute(attrName, v);
     TangoServerLauncher::self->remoteProxy->write_attribute(attr);
   }
 
   minimumUserType getValue() {
     Tango::DevLong value;
-    auto attr = TangoServerLauncher::self->remoteProxy->read_attribute(readPath());
+    std::string path = readPath();
+    auto attr = TangoServerLauncher::self->remoteProxy->read_attribute(path);
     attr >> value;
 
     return value;
@@ -170,13 +172,15 @@ struct RegSomeRoInt : ScalarDefaults<RegSomeRoInt> {
   static constexpr auto capabilities = ScalarDefaults<RegSomeInt>::capabilities.enableTestReadOnly();
 
   void setValue(minimumUserType v) {
-    auto attr = Tango::DeviceAttribute(writePath(), v);
+    std::string path = writePath();
+    auto attr = Tango::DeviceAttribute(path, v);
     TangoServerLauncher::self->remoteProxy->write_attribute(attr);
   }
 
   minimumUserType getValue() {
     Tango::DevLong value;
-    auto attr = TangoServerLauncher::self->remoteProxy->read_attribute(readPath());
+    std::string path = readPath();
+    auto attr = TangoServerLauncher::self->remoteProxy->read_attribute(path);
     attr >> value;
 
     return value;
@@ -193,13 +197,15 @@ struct RegSomeWoInt : ScalarDefaults<RegSomeWoInt> {
   static constexpr auto capabilities = ScalarDefaults<RegSomeInt>::capabilities.enableTestWriteOnly();
 
   void setValue(minimumUserType v) {
-    auto attr = Tango::DeviceAttribute(writePath(), v);
+    std::string path = writePath();
+    auto attr = Tango::DeviceAttribute(path, v);
     TangoServerLauncher::self->remoteProxy->write_attribute(attr);
   }
 
   minimumUserType getValue() {
     Tango::DevLong value;
-    auto attr = TangoServerLauncher::self->remoteProxy->read_attribute(readPath());
+    std::string path = readPath();
+    auto attr = TangoServerLauncher::self->remoteProxy->read_attribute(path);
     attr >> value;
 
     return value;
@@ -217,7 +223,8 @@ struct RegSomeBool : ScalarDefaults<RegSomeBool> {
 
   void setValue(minimumUserType v) {
     try {
-      auto attr = Tango::DeviceAttribute(writePath(), bool(v));
+      std::string path = writePath();
+      auto attr = Tango::DeviceAttribute(path, bool(v));
       TangoServerLauncher::self->remoteProxy->write_attribute(attr);
     }
     catch(CORBA::Exception& ex) {
@@ -229,7 +236,8 @@ struct RegSomeBool : ScalarDefaults<RegSomeBool> {
   minimumUserType getValue() {
     Tango::DevBoolean value;
     try {
-      auto attr = TangoServerLauncher::self->remoteProxy->read_attribute(readPath());
+      std::string path = readPath();
+      auto attr = TangoServerLauncher::self->remoteProxy->read_attribute(path);
       attr >> value;
     }
     catch(CORBA::Exception& ex) {
@@ -253,13 +261,15 @@ struct RegSomeRoBool : ScalarDefaults<RegSomeRoBool> {
   static constexpr auto capabilities = ScalarDefaults<RegSomeInt>::capabilities.enableTestReadOnly();
 
   void setValue(minimumUserType v) {
-    auto attr = Tango::DeviceAttribute(readPath(), bool(v));
+    std::string path = readPath();
+    auto attr = Tango::DeviceAttribute(path, bool(v));
     TangoServerLauncher::self->remoteProxy->write_attribute(attr);
   }
 
   minimumUserType getValue() {
     Tango::DevBoolean value;
-    auto attr = TangoServerLauncher::self->remoteProxy->read_attribute(writePath());
+    std::string path = readPath();
+    auto attr = TangoServerLauncher::self->remoteProxy->read_attribute(path);
     attr >> value;
 
     return value;
@@ -278,13 +288,15 @@ struct RegSomeWoBool : ScalarDefaults<RegSomeWoBool> {
   static constexpr auto capabilities = ScalarDefaults<RegSomeInt>::capabilities.enableTestWriteOnly();
 
   void setValue(minimumUserType v) {
-    auto attr = Tango::DeviceAttribute(writePath(), bool(v));
+    std::string path = writePath();
+    auto attr = Tango::DeviceAttribute(path, bool(v));
     TangoServerLauncher::self->remoteProxy->write_attribute(attr);
   }
 
   minimumUserType getValue() {
     Tango::DevBoolean value;
-    auto attr = TangoServerLauncher::self->remoteProxy->read_attribute(readPath());
+    std::string path = readPath();
+    auto attr = TangoServerLauncher::self->remoteProxy->read_attribute(path);
     attr >> value;
 
     return value;
@@ -301,7 +313,8 @@ struct RegSomeString : ScalarDefaults<RegSomeString> {
   std::string increment;
 
   void setValue(minimumUserType v) {
-    auto attr = Tango::DeviceAttribute(writePath(), v);
+    std::string path = writePath();
+    auto attr = Tango::DeviceAttribute(path, v);
     TangoServerLauncher::self->remoteProxy->write_attribute(attr);
   }
 
@@ -312,7 +325,8 @@ struct RegSomeString : ScalarDefaults<RegSomeString> {
 
   minimumUserType getValue() {
     std::string value;
-    auto attr = TangoServerLauncher::self->remoteProxy->read_attribute(readPath());
+    std::string path = readPath();
+    auto attr = TangoServerLauncher::self->remoteProxy->read_attribute(path);
     attr >> value;
 
     return value;
@@ -337,7 +351,8 @@ struct RegSomeIntArray : ArrayDefaults<RegSomeIntArray> {
 
   void setValue(int i, Tango::DevLong v) {
     try {
-      auto attrRead = TangoServerLauncher::self->remoteProxy->read_attribute(readPath());
+      std::string path = readPath();
+      auto attrRead = TangoServerLauncher::self->remoteProxy->read_attribute(path);
 
       std::vector<Tango::DevLong> values(10, {});
       attrRead >> values;
@@ -346,7 +361,8 @@ struct RegSomeIntArray : ArrayDefaults<RegSomeIntArray> {
       // for some reason, the vector returned by Tango is one too large
       values.resize(10);
 
-      auto attr = Tango::DeviceAttribute(writePath(), values);
+      path = writePath();
+      auto attr = Tango::DeviceAttribute(path, values);
       TangoServerLauncher::self->remoteProxy->write_attribute(attr);
     }
     catch(CORBA::Exception& ex) {
@@ -358,7 +374,8 @@ struct RegSomeIntArray : ArrayDefaults<RegSomeIntArray> {
   void setRemoteValue() { setRemoteValueImpl<Tango::DevLong>(); }
 
   Tango::DevLong getValue(int i) {
-    auto attrRead = TangoServerLauncher::self->remoteProxy->read_attribute(readPath());
+    std::string path = readPath();
+    auto attrRead = TangoServerLauncher::self->remoteProxy->read_attribute(path);
 
     std::vector<Tango::DevLong> values;
     attrRead >> values;
@@ -379,7 +396,8 @@ struct RegSomeStringArray : ArrayDefaults<RegSomeStringArray> {
   int32_t increment{12};
 
   void setValue(int i, std::string v) {
-    auto attrRead = TangoServerLauncher::self->remoteProxy->read_attribute(readPath());
+    std::string path = readPath();
+    auto attrRead = TangoServerLauncher::self->remoteProxy->read_attribute(path);
 
     std::vector<std::string> values;
     attrRead >> values;
@@ -389,14 +407,16 @@ struct RegSomeStringArray : ArrayDefaults<RegSomeStringArray> {
     // for some reason, the vector returned by Tango is one too large
     values.resize(10);
 
-    auto attr = Tango::DeviceAttribute(writePath(), values);
+    path = writePath();
+    auto attr = Tango::DeviceAttribute(path, values);
     TangoServerLauncher::self->remoteProxy->write_attribute(attr);
   }
 
   void setRemoteValue() { setRemoteValueImpl<std::string>(); }
 
   std::string getValue(int i) {
-    auto attrRead = TangoServerLauncher::self->remoteProxy->read_attribute(readPath());
+    std::string path = readPath();
+    auto attrRead = TangoServerLauncher::self->remoteProxy->read_attribute(path);
 
     std::vector<std::string> values;
     attrRead >> values;
@@ -437,7 +457,8 @@ struct RegSomeBooleanArray : ArrayDefaults<RegSomeBooleanArray> {
   int32_t increment{12};
 
   void setValue(int i, bool v) {
-    auto attrRead = TangoServerLauncher::self->remoteProxy->read_attribute(readPath());
+    std::string path = readPath();
+    auto attrRead = TangoServerLauncher::self->remoteProxy->read_attribute(path);
 
     std::vector<Tango::DevBoolean> values;
     try {
@@ -452,14 +473,16 @@ struct RegSomeBooleanArray : ArrayDefaults<RegSomeBooleanArray> {
     // for some reason, the vector returned by Tango is one too large
     values.resize(10);
 
-    auto attr = Tango::DeviceAttribute(writePath(), values);
+    path = writePath();
+    auto attr = Tango::DeviceAttribute(path, values);
     TangoServerLauncher::self->remoteProxy->write_attribute(attr);
   }
 
   void setRemoteValue() { setRemoteValueImpl<ChimeraTK::Boolean>(); }
 
   ChimeraTK::Boolean getValue(int i) {
-    auto attrRead = TangoServerLauncher::self->remoteProxy->read_attribute(readPath());
+    std::string path = readPath();
+    auto attrRead = TangoServerLauncher::self->remoteProxy->read_attribute(path);
 
     std::vector<Tango::DevBoolean> values;
     attrRead >> values;

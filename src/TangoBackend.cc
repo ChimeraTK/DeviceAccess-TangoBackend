@@ -6,7 +6,6 @@
 #include "OfflineCache.h"
 #include "RegisterCatalogue.h"
 #include "TangoRegisterAccessor.h"
-#include <tango/common/tango_const.h>
 #include <tango/tango.h>
 
 #include <ChimeraTK/BackendFactory.h>
