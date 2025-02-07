@@ -14,12 +14,12 @@ include(cmake/enable_code_coverage_report.cmake)
 
 FIND_PACKAGE(ChimeraTK-DeviceAccess 03.11 REQUIRED)
 FIND_PACKAGE(Boost COMPONENTS thread unit_test_framework REQUIRED)
+FIND_PACKAGE(nlohmann_json 03.07 REQUIRED)
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 FIND_PACKAGE(PkgConfig REQUIRED)
 
 PKG_CHECK_MODULES(Tango REQUIRED IMPORTED_TARGET tango)
-PKG_CHECK_MODULES(Json REQUIRED IMPORTED_TARGET nlohmann_json)
 
 set(${PROJECT_NAME}_INCLUDE_DIRS ${${PROJECT_NAME}_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include/)
 
