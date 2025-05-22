@@ -34,6 +34,7 @@
 //=============================================================================
 
 #include "TangoTestServerClass.h"
+
 #include <tango/tango.h>
 
 //	Add class header files if needed

@@ -15,12 +15,11 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/process.hpp>
+#include <boost/test/unit_test.hpp>
 
 #include <chrono>
 #include <filesystem>
 #include <random>
-
-#include <boost/test/unit_test.hpp>
 
 using namespace boost::unit_test_framework;
 using namespace ChimeraTK;

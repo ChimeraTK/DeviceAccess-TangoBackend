@@ -6,12 +6,13 @@
 #include "OfflineCache.h"
 #include "RegisterCatalogue.h"
 #include "TangoRegisterAccessor.h"
-#include <tango/tango.h>
 
 #include <ChimeraTK/BackendFactory.h>
 #include <ChimeraTK/Exception.h>
 #include <ChimeraTK/MetadataCatalogue.h>
 #include <ChimeraTK/RegisterCatalogue.h>
+
+#include <tango/tango.h>
 
 #include <boost/shared_ptr.hpp>
 
