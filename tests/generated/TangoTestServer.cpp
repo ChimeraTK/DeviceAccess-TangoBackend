@@ -37,6 +37,7 @@
 #include "TangoTestServer.h"
 
 #include "TangoTestServerClass.h"
+
 #include <tango/idl/tango.h>
 /* clang-format off */
 /*----- PROTECTED REGION END -----*/	//	TangoTestServer.cpp

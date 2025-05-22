@@ -1,27 +1,25 @@
 // SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include <tango/idl/tango.h>
-
 #include <ChimeraTK/SupportedUserTypes.h>
+
+#include <tango/idl/tango.h>
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE testUnifiedBackendTest
 
 #include "TangoServerLauncher.h"
-#include <tango/tango.h>
 
 #include <ChimeraTK/UnifiedBackendTest.h>
 
+#include <tango/tango.h>
+
 #include <boost/filesystem.hpp>
 #include <boost/process.hpp>
+#include <boost/test/unit_test.hpp>
 
 #include <chrono>
 #include <filesystem>
 #include <random>
-
-#define BOOST_NO_EXCEPTIONS
-#include <boost/test/unit_test.hpp>
-#undef BOOST_NO_EXCEPTIONS
 
 using namespace boost::unit_test_framework;
 using namespace ChimeraTK;
@@ -143,7 +141,7 @@ struct RegSomeInt : ScalarDefaults<RegSomeInt> {
   std::string path() { return "IntScalar"; }
   std::string writePath() { return "IntScalar"; }
   std::string readPath() { return "IntScalar"; }
-  typedef int32_t minimumUserType;
+  using minimumUserType = int32_t;
   int32_t increment{3};
 
   void setValue(minimumUserType v) {

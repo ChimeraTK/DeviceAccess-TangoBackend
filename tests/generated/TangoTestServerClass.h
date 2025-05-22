@@ -38,6 +38,7 @@
 #define TangoTestServerClass_H
 
 #include "TangoTestServer.h"
+
 #include <tango/tango.h>
 
 #include <atomic>

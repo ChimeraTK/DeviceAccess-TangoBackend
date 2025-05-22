@@ -3,13 +3,14 @@
 #pragma once
 
 #include "TangoBackend.h"
-#include <omniORB4/CORBA.h>
-#include <tango/idl/tango.h>
-#include <tango/tango.h>
 
 #include <ChimeraTK/Exception.h>
 #include <ChimeraTK/NDRegisterAccessor.h>
 #include <ChimeraTK/TransferElement.h>
+
+#include <omniORB4/CORBA.h>
+#include <tango/idl/tango.h>
+#include <tango/tango.h>
 
 #include <iterator>
 #include <utility>

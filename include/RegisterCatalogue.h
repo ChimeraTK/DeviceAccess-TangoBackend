@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
 
-#include <tango/tango.h>
-
 #include <ChimeraTK/BackendRegisterCatalogue.h>
+
+#include <tango/tango.h>
 
 namespace ChimeraTK {
 

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "RegisterCatalogue.h"
+
 #include <nlohmann/json.hpp>
 #include <tango/tango.h>
 
