@@ -69,15 +69,19 @@ void TangoServerLauncher::start() {
 
   auto url = getClientUrl();
   url.replace(url.find("%23"), 3, "#");
+  auto start = std::chrono::steady_clock::now();
   while(true) {
     try {
       std::this_thread::sleep_for(std::chrono::milliseconds(500));
       remoteProxy = std::make_shared<Tango::DeviceProxy>(url);
+      remoteProxy->read_attribute("State");
       break;
     }
     catch(CORBA::Exception& ex) {
-      Tango::Except::print_exception(ex);
-      assert(false);
+      if(auto now = std::chrono::steady_clock::now(); now > start + std::chrono::seconds(2)) {
+        Tango::Except::print_exception(ex);
+        assert(false);
+      }
     }
   }
 }
