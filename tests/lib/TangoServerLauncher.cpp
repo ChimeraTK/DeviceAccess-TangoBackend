@@ -78,7 +78,7 @@ void TangoServerLauncher::start() {
       break;
     }
     catch(CORBA::Exception& ex) {
-      if(auto now = std::chrono::steady_clock::now(); now > start + std::chrono::seconds(2)) {
+      if(auto now = std::chrono::steady_clock::now(); now > start + std::chrono::seconds(10)) {
         Tango::Except::print_exception(ex);
         assert(false);
       }
