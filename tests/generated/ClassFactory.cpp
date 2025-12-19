@@ -33,13 +33,34 @@
 //        (Program Obviously used to Generate tango Object)
 //=============================================================================
 
+#include "ClassFactory.h"
+
 #include "TangoTestServerClass.h"
 
-#include <tango/tango.h>
-
 //	Add class header files if needed
+#if TANGO_VERSION >= TANGO_MAKE_VERSION(10, 3, 0)
 
-/*
+namespace TangoTestServer_ns {
+
+  class DServerImpl : public Tango::DServer {
+   public:
+    DServerImpl(Tango::DeviceClass* cl_ptr, const std::string& name, const std::string& desc, Tango::DevState state,
+        const std::string& status)
+    : DServer(cl_ptr, name.c_str(), desc.c_str(), state, status.c_str()) {}
+
+   private:
+    void class_factory() override { add_class(TangoTestServerClass::init("TangoTestServer")); }
+  };
+
+  Tango::DServer* constructor(Tango::DeviceClass* cl_ptr, const std::string& name, const std::string& desc,
+      Tango::DevState state, const std::string& status) {
+    return new DServerImpl(cl_ptr, name, desc, state, status);
+  }
+} // namespace TangoTestServer_ns
+
+#else
+
+/**
  *	Create TangoTestServer Class singleton and store it in DServer object.
  */
 
@@ -47,5 +68,6 @@ void Tango::DServer::class_factory() {
   //	Add method class init if needed
   add_class(TangoTestServer_ns::TangoTestServerClass::init("TangoTestServer"));
 }
+#endif
 /* clang-format off */
 /*----- PROTECTED REGION END -----*/	//	TangoTestServer::ClassFactory.cpp
