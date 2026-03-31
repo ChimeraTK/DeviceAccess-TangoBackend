@@ -44,17 +44,17 @@ namespace TangoTestServer_ns {
 
   class DServerImpl : public Tango::DServer {
    public:
-    DServerImpl(Tango::DeviceClass* cl_ptr, const std::string& name, const std::string& desc, Tango::DevState state,
-        const std::string& status)
-    : DServer(cl_ptr, name.c_str(), desc.c_str(), state, status.c_str()) {}
+    DServerImpl(Tango::DeviceClass* cl_ptr, const std::string& name, const std::string& description,
+        Tango::DevState state, const std::string& status)
+    : DServer(cl_ptr, name.c_str(), description.c_str(), state, status.c_str()) {}
 
    private:
     void class_factory() override { add_class(TangoTestServerClass::init("TangoTestServer")); }
   };
 
-  Tango::DServer* constructor(Tango::DeviceClass* cl_ptr, const std::string& name, const std::string& desc,
+  Tango::DServer* constructor(Tango::DeviceClass* cl_ptr, const std::string& name, const std::string& description,
       Tango::DevState state, const std::string& status) {
-    return new DServerImpl(cl_ptr, name, desc, state, status);
+    return new DServerImpl(cl_ptr, name, description, state, status);
   }
 } // namespace TangoTestServer_ns
 
