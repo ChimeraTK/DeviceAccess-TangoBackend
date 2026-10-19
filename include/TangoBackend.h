@@ -7,6 +7,8 @@
 #include <ChimeraTK/DeviceBackend.h>
 #include <ChimeraTK/DeviceBackendImpl.h>
 
+#include <memory>
+
 namespace Tango {
   class DeviceProxy;
 } // namespace Tango
@@ -31,12 +33,13 @@ namespace ChimeraTK {
 
     std::string readDeviceInfo() override;
 
+    /// Return a copy of the device proxy. Callers hold the returned shared pointer for the
+    /// duration of their call, so a concurrent close() cannot free the proxy in use.
     std::shared_ptr<Tango::DeviceProxy> getDeviceProxy() { return _deviceProxy; }
 
    private:
     std::string _address;
     std::shared_ptr<Tango::DeviceProxy> _deviceProxy;
     mutable TangoRegisterCatalogue _registerCatalogue{};
-    DataDescriptor mapTangoType();
   };
 } // namespace ChimeraTK

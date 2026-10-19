@@ -202,15 +202,21 @@ namespace ChimeraTK {
       catch(Tango::DevFailed& ex) {
         throw ChimeraTK::runtime_error("Failed to read from attribute " + registerInfo.attributeInfo.name);
       }
-
-      auto length = std::min(this->buffer_2D[0].size(), value.size());
-      auto sourceStart = value.begin() + elementOffset;
+      // The server may return fewer elements than requested. Clamp the read range to the
+      // available data so we never read past the end of the source vector. Elements beyond
+      // the returned data keep their previous contents.
+      size_t length = 0;
+      auto sourceStart = value.begin();
+      if(elementOffset <= value.size()) {
+        sourceStart = value.begin() + elementOffset;
+        length = std::min(this->buffer_2D[0].size(), value.size() - elementOffset);
+      }
       auto sourceEnd = sourceStart + length;
       if constexpr(std::is_same_v<TangoType, Tango::DevEnum>) {
         std::transform(
             sourceStart, sourceEnd, this->buffer_2D[0].begin(), ChimeraTK::numericToUserType<UserType, Tango::DevEnum>);
       }
-      if constexpr(std::is_same_v<TangoType, Tango::DevState>) {
+      else if constexpr(std::is_same_v<TangoType, Tango::DevState>) {
         std::transform(sourceStart, sourceEnd, this->buffer_2D[0].begin(),
             [](TangoType& v) { return ChimeraTK::numericToUserType<UserType, int>(static_cast<int>(v)); });
       }

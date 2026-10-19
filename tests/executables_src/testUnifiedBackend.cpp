@@ -17,6 +17,7 @@
 #include <boost/process.hpp>
 #include <boost/test/unit_test.hpp>
 
+#include <cassert>
 #include <chrono>
 #include <filesystem>
 #include <random>
@@ -84,21 +85,7 @@ struct ScalarDefaultsBase : AllRegisterDefaults<DERIVED> {
 };
 
 template<typename DERIVED>
-struct ScalarDefaults : ScalarDefaultsBase<DERIVED> {
-  using AllRegisterDefaults<DERIVED>::derived;
-  size_t nElementsPerChannel() { return 1; }
-
-  template<typename UserType>
-  std::vector<std::vector<UserType>> getRemoteValue() {
-    auto v = ChimeraTK::numericToUserType<UserType>(derived->getValue());
-    return {{v}};
-  }
-
-  void setRemoteValue() {
-    auto v = derived->template generateValue<typename DERIVED::minimumUserType>()[0][0];
-    derived->setValue(v);
-  }
-};
+using ScalarDefaults = ScalarDefaultsBase<DERIVED>;
 
 /**********************************************************************************************************************/
 
@@ -250,7 +237,7 @@ struct RegSomeBool : ScalarDefaults<RegSomeBool> {
 struct RegSomeRoBool : ScalarDefaults<RegSomeRoBool> {
   std::string path() { return "BooleanRoScalar"; }
   std::string writePath() { return "BooleanScalar"; }
-  std::string readPath() { return "BooleanScalar"; }
+  std::string readPath() { return "BooleanRoScalar"; }
 
   using minimumUserType = ChimeraTK::Boolean;
 
@@ -259,7 +246,7 @@ struct RegSomeRoBool : ScalarDefaults<RegSomeRoBool> {
   static constexpr auto capabilities = ScalarDefaults<RegSomeInt>::capabilities.enableTestReadOnly();
 
   void setValue(minimumUserType v) {
-    std::string path = readPath();
+    std::string path = writePath();
     auto attr = Tango::DeviceAttribute(path, bool(v));
     TangoServerLauncher::self->remoteProxy->write_attribute(attr);
   }
@@ -307,8 +294,6 @@ struct RegSomeString : ScalarDefaults<RegSomeString> {
   std::string readPath() { return "StringScalar"; }
 
   typedef std::string minimumUserType;
-
-  std::string increment;
 
   void setValue(minimumUserType v) {
     std::string path = writePath();
@@ -391,7 +376,6 @@ struct RegSomeStringArray : ArrayDefaults<RegSomeStringArray> {
 
   size_t nElementsPerChannel() { return 10; }
   using minimumUserType = std::string;
-  int32_t increment{12};
 
   void setValue(int i, std::string v) {
     std::string path = readPath();
