@@ -38,4 +38,10 @@ BOOST_AUTO_TEST_CASE(testValidityFromServer) {
     BOOST_CHECK_NO_THROW(accessor.read());
     BOOST_TEST(accessor.dataValidity() == ChimeraTK::DataValidity::faulty);
   }
+
+  {
+    auto accessor = device.getScalarRegisterAccessor<uint64_t>("ChangingValue");
+    BOOST_CHECK_NO_THROW(accessor.read());
+    BOOST_TEST(accessor.dataValidity() == ChimeraTK::DataValidity::ok);
+  }
 }

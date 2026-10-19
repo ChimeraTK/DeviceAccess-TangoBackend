@@ -16,6 +16,8 @@
 
 #include <boost/shared_ptr.hpp>
 
+#include <format>
+#include <string>
 #include <utility>
 
 static struct BackendRegisterer {
@@ -64,34 +66,34 @@ namespace ChimeraTK {
   void TangoBackend::open() {
     // Apparently there is no way to reconnect the proxy via public api. All the relevant connection API
     // is protected.
-    if(_deviceProxy) {
-      _deviceProxy.reset();
-    }
-
+    std::shared_ptr<Tango::DeviceProxy> newProxy;
     try {
-      _deviceProxy = std::make_shared<Tango::DeviceProxy>(_address);
-      _deviceProxy->set_transparency_reconnection(false);
+      newProxy = std::make_shared<Tango::DeviceProxy>(_address);
+      newProxy->set_transparency_reconnection(false);
       auto catalogue = TangoRegisterCatalogue();
 
       // https://github.com/tango-controls/pytango/issues/375
       // Some interaction with the server is needed. DeviceProxy will not throw in its constructor
-      std::unique_ptr<Tango::AttributeInfoListEx> attributes(_deviceProxy->attribute_list_query_ex());
+      std::unique_ptr<Tango::AttributeInfoListEx> attributes(newProxy->attribute_list_query_ex());
       for(auto& attr : *attributes) {
         catalogue.addRegister(TangoRegisterInfo(attr));
       }
+
+      _deviceProxy = std::move(newProxy);
       _registerCatalogue = std::move(catalogue);
     }
     catch(Tango::WrongNameSyntax& ex) {
-      throw ChimeraTK::logic_error(
-          "Invalid Tango device address " + _address + ", " + static_cast<std::string>(ex.errors[0].desc));
+      std::string detail = ex.errors.length() > 0 ? static_cast<const char*>(ex.errors[0].desc) : "unknown reason";
+      throw ChimeraTK::logic_error(std::format("Invalid Tango device address {}, {}", _address, detail));
     }
     catch(Tango::ConnectionFailed& ex) {
-      std::string message = "Cannot connect to " + _address + ", " + static_cast<std::string>(ex.errors[0].desc);
+      std::string detail = ex.errors.length() > 0 ? static_cast<const char*>(ex.errors[0].desc) : "unknown reason";
+      std::string message = std::format("Cannot connect to {}, {}", _address, detail);
       setException(message);
       throw ChimeraTK::runtime_error(message);
     }
     catch(CORBA::Exception& ex) {
-      std::string message = "Cannot connect to " + _address + "for unknown reason";
+      std::string message = std::format("Cannot connect to {} for unknown reason", _address);
       setException(message);
       throw ChimeraTK::runtime_error(message);
     }
