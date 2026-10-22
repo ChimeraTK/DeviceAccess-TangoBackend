@@ -1,7 +1,7 @@
 # CR-002: Tango command support in the Tango backend
 
 Synopsis: The backend exposes Tango attributes only. Expose the device's commands
-as registers under a `/Command/` namespace, executed by writing a void trigger
+as registers under a `/Commands/` namespace, executed by writing a void trigger
 register, with arguments in companion registers and results read on demand or
 with `wait_for_new_data`.
 
@@ -17,24 +17,24 @@ R1. Commands appear in the catalogue.
 - `open()` adds the device's commands, next to the attributes it adds today.
 - Every command is exposed except `Init`.
 - The built-in `State` and `Status` commands are exposed like any other command.
-- All command registers live under `/Command/`, so a command and an attribute of
+- All command registers live under `/Commands/`, so a command and an attribute of
   the same name never clash. Attribute registers keep their current names.
 - Per command `<Cmd>` the backend exposes:
-  - `/Command/<Cmd>`: the write-only void trigger, always present.
-  - `/Command/<Cmd>/arg`: the write-only argument, present when the input type is
-    not `DevVoid`.
-  - `/Command/<Cmd>/result`: the read-only result, present when the output type is
-    not `DevVoid`.
+  - `/Commands/<Cmd>`: the write-only void trigger, always present.
+  - `/Commands/<Cmd>/arg`: the write-only argument, present when the input
+    type is not `DevVoid`.
+  - `/Commands/<Cmd>/result`: the read-only result, present when the output
+    type is not `DevVoid`.
 
 R2. Execution semantics.
 
 - Writing the trigger executes the command exactly once, synchronously, with the
-  current value of `/Command/<Cmd>/arg`.
+  current value of `/Commands/<Cmd>/arg`.
 - The argument is sticky: it keeps the last written value.
 - A trigger for a command with an argument never written since `open()` throws
   `logic_error`.
-- The result of the execution becomes the content of `/Command/<Cmd>/result`.
-- Reading `/Command/<Cmd>/result` with a plain accessor before the command ran
+- The result of the execution becomes the content of `/Commands/<Cmd>/result`.
+- Reading `/Commands/<Cmd>/result` with a plain accessor before the command ran
   once throws `logic_error`; an accessor with `wait_for_new_data` waits instead
   (R6). A read has no side effects.
 
@@ -46,11 +46,11 @@ R3. Type coverage.
   unsigned 8 bit numeric, `DevString` and `ConstDevString` to string.
 - A homogeneous array maps to one register carrying its element's type.
 - The mixed pairs are split into a numeric and a string register:
-  - `/Command/<Cmd>/arg/values` and `/Command/<Cmd>/arg/strings`,
-  - `/Command/<Cmd>/result/values` and `/Command/<Cmd>/result/strings`.
+  - `/Commands/<Cmd>/arg/values` and `/Commands/<Cmd>/arg/strings`,
+  - `/Commands/<Cmd>/result/values` and `/Commands/<Cmd>/result/strings`.
 - `DevEncoded` and `DevVarEncodedArray` are split into a format and a data part:
-  - `/Command/<Cmd>/arg/format` and `/Command/<Cmd>/arg/data`,
-  - `/Command/<Cmd>/result/format` and `/Command/<Cmd>/result/data`.
+  - `/Commands/<Cmd>/arg/format` and `/Commands/<Cmd>/arg/data`,
+  - `/Commands/<Cmd>/result/format` and `/Commands/<Cmd>/result/data`.
 
 R4. Array lengths.
 
@@ -201,7 +201,7 @@ test sources.
 
 - Reading the result executes the command: rejected, reads stay free of side
   effects and the trigger remains the only invocation path.
-- Trigger `/Cmd/execute` without a namespace: rejected in favour of `/Command/`,
+- Trigger `/Cmd/execute` without a namespace: rejected in favour of `/Commands/`,
   which also removes attribute clashes and keeps `State` and `Status` usable.
 - One 2D string register for the mixed pairs: rejected, the numeric part would
   lose its type.
@@ -234,7 +234,7 @@ test sources.
 
 - New executable `tests/executables_src/testCommands.cpp`, run against the test
   server through `TangoServerLauncher`:
-  - catalogue: `/Command/` registers for the server's commands, `Init` absent,
+  - catalogue: `/Commands/` registers for the server's commands, `Init` absent,
     `State` and `Status` present with their result registers;
   - void to void command: one trigger write executes it exactly once, visible
     through a companion command reporting the execution count;
