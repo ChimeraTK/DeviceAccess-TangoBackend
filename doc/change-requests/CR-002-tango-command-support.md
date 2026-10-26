@@ -36,33 +36,25 @@ R2. Execution semantics.
 - The result of the execution becomes the content of `/Commands/<Cmd>/result`.
 - Reading `/Commands/<Cmd>/result` with a plain accessor before the command ran
   once throws `logic_error`; an accessor with `wait_for_new_data` waits instead
-  (R6). A read has no side effects.
+  (R5). A read has no side effects.
 
 R3. Type coverage.
 
-- Every `CmdArgType` value is mapped, for arguments and results alike, except
-  `DevPipeBlob`, which is rejected with `logic_error`.
-- Scalars map as the attribute path already maps them: `DevState` maps to an
-  unsigned 8 bit numeric, `DevString` and `ConstDevString` to string.
-- A homogeneous array maps to one register carrying its element's type.
-- The mixed pairs are split into a numeric and a string register:
-  - `/Commands/<Cmd>/arg/values` and `/Commands/<Cmd>/arg/strings`,
-  - `/Commands/<Cmd>/result/values` and `/Commands/<Cmd>/result/strings`.
-- `DevEncoded` and `DevVarEncodedArray` are split into a format and a data part:
-  - `/Commands/<Cmd>/arg/format` and `/Commands/<Cmd>/arg/data`,
-  - `/Commands/<Cmd>/result/format` and `/Commands/<Cmd>/result/data`.
+- Only fixed-size scalar types are supported, for arguments and results alike:
+  `DevVoid`, `DevBoolean`, `DevShort`, `DevLong`, `DevFloat`, `DevDouble`,
+  `DevUShort`, `DevULong`, `DevString`, `ConstDevString`, `DevState`, `DevEnum`,
+  `DevUChar`, `DevLong64` and `DevULong64`.
+- Arrays are unsupported: neither the homogeneous `DevVar*` types nor the mixed
+  pairs `DevVarLongStringArray` and `DevVarDoubleStringArray`.
+- `DevEncoded`, `DevVarEncodedArray` and `DevPipeBlob` are unsupported as well.
+- A command whose argument or result type is unsupported is skipped entirely and
+  logged as a warning while `open()` builds the catalogue; the backend never lists
+  a command it cannot serve.
+- The supported types map as the attribute path already maps them: `DevState` to
+  an unsigned 8 bit numeric, `DevString` and `ConstDevString` to string, `DevEnum`
+  to a 64 bit signed integer.
 
-R4. Array lengths.
-
-- Tango declares no length for array arguments and results; the user picks it with
-  `numberOfWords` when the accessor is created.
-- The catalogue reports one element for every command register.
-- A written argument is sent with exactly the register length.
-- A result with more elements than the buffer throws `runtime_error`.
-- A result with fewer elements fills the leading elements only.
-- `numberOfWords == 0` for a command register throws `logic_error`.
-
-R5. Failures.
+R4. Failures.
 
 - A Tango `DevFailed` while executing a command or while querying the command
   list is reported as `ChimeraTK::runtime_error` naming the command.
@@ -70,7 +62,7 @@ R5. Failures.
 - A trigger write or an argument write while the device is closed throws
   `logic_error`, as attribute access does today.
 
-R6. Asynchronous result reads.
+R5. Asynchronous result reads.
 
 - A result register accepts `AccessMode::wait_for_new_data`; trigger and argument
   keep rejecting it, as every register does today.
@@ -82,12 +74,12 @@ R6. Asynchronous result reads.
   returns the cached result.
 - An accessor created after an execution starts from the cached result and does
   not wait.
-- One new version per execution, shared by a command's result register and its
-  composite parts; plain reads of an unchanged result keep the previous version.
+- One new version per execution; plain reads of an unchanged result keep the
+  previous version.
 - A consumer slower than the command skips intermediate results; every read
   returns the newest cached result of that command.
 
-R7. Offline cache.
+R6. Offline cache.
 
 - The cache file gains a top-level `commands` array with `name`, `inType` and
   `outType` per command; `tools/generateCacheFile.py` dumps commands as well.
@@ -96,9 +88,10 @@ R7. Offline cache.
 - A malformed `commands` entry is rejected with `logic_error` naming the file,
   matching the existing catalogue validation.
 
-R8. Test server.
+R7. Test server.
 
-- The POGO-generated test server gains the commands the command tests need.
+- The POGO-generated test server gains the commands the command tests need; every
+  added command has a supported argument and result type (R3).
 - `tests/generated/TangoTestServer.xmi` and the generated sources are kept
   consistent by hand; POGO is not available in this environment.
 
@@ -113,22 +106,21 @@ test sources.
 
 - `TangoRegisterInfo` wraps a `Tango::AttributeInfoEx` today and is the only
   register type of `TangoRegisterCatalogue`. It gains a role (`attribute`,
-  `trigger`, `argument`, `result` and the composite parts) plus, for command
-  registers, the command name, the part's `CmdArgType` and the input/output
-  direction.
+  `trigger`, `argument`, `result`) plus, for command registers, the command name,
+  the `CmdArgType` and the input/output direction.
 - One `TangoRegisterInfo` per register, so the existing interface methods answer
-  per part: trigger and argument are write-only, result is read-only.
+  per register: trigger and argument are write-only, result is read-only.
 - `isReadable()` and `isWriteable()` drive the existing accessor checks;
   `getSupportedAccessModes()` stays empty for every register except result
   registers (see below).
 - `getNumberOfElements()` and `getNumberOfChannels()` return 1 for every command
-  register. The array length is a property of the accessor (R4), not of the
-  catalogue.
-- `util::mapTangoToUserType` is extended by the array types (through their element
-  type), `ConstDevString`, `DevEncoded` and `DevVarEncodedArray`; `DevPipeBlob`
-  throws `logic_error`.
+  register, each command register holding a single scalar value (R3).
+- `util::mapTangoToUserType` is extended by `ConstDevString` only; every other
+  supported type is mapped already. An unsupported type never reaches it, because
+  the command is skipped while the catalogue is built.
 - `open()` assembles the catalogue from `attribute_list_query_ex()` as today, then
-  appends the command registers from `command_list_query()`, skipping `Init`.
+  appends the command registers from `command_list_query()`, skipping `Init` and
+  the commands of unsupported type (R3).
 
 ### Command state
 
@@ -136,7 +128,7 @@ test sources.
   last `Tango::DeviceData` returned by the server, and flags for "argument
   written" and "executed".
 - The state is type agnostic: the argument is packed into a `Tango::DeviceData` at
-  trigger time from the part registers, so no per-type storage is needed.
+  trigger time from the argument register, so no per-type storage is needed.
 - `Tango::DeviceData` is copyable, so the result of an execution can be stored.
 - The state is guarded by a mutex. The device proxy stays mutex free, as after
   CR-001.
@@ -152,21 +144,10 @@ test sources.
   the returned data.
 - The argument accessor converts its buffer to the Tango type, reusing the
   existing conversion helpers, and stores it in the command state.
-- The result accessor unpacks the stored `Tango::DeviceData` into its buffer,
-  applying R4's length rules and reporting `DataValidity::ok`. Scalars use the
-  `DeviceData` scalar operators, arrays the array operators, `DevState` the array
-  pointer operator.
+- The result accessor unpacks the stored `Tango::DeviceData` into its single
+  element buffer and reports `DataValidity::ok`. Scalars use the `DeviceData`
+  scalar operators, `DevState` the array pointer operator.
 - Version numbers follow the attribute path: one new version per read.
-
-### Composite parts
-
-- A composite argument needs both parts written. Each part has its own "written"
-  flag, and a trigger with a missing part throws `logic_error` as for a plain
-  argument (R2).
-- Packing builds `DevVarLongStringArray{lvalue, svalue}`,
-  `DevVarDoubleStringArray{dvalue, svalue}` or
-  `DevEncoded{encoded_format, encoded_data}` from the two registers.
-- Unpacking reads both parts back from the stored `Tango::DeviceData`.
 
 ### Asynchronous result accessors
 
@@ -203,8 +184,10 @@ test sources.
   effects and the trigger remains the only invocation path.
 - Trigger `/Cmd/execute` without a namespace: rejected in favour of `/Commands/`,
   which also removes attribute clashes and keeps `State` and `Status` usable.
-- One 2D string register for the mixed pairs: rejected, the numeric part would
-  lose its type.
+- Exposing array arguments and results with a user-chosen `numberOfWords`:
+  rejected, Tango declares no length for them and `CommandInfo` carries none, so
+  the backend cannot report a size that matches the data the server sends or
+  expects. Commands of an unsupported type are skipped instead (R3).
 - Waiting for a command concept in DeviceAccess: 03.31 has none, so the convention
   has to live in this backend.
 - Regenerating the test server with POGO: POGO is not installed here, so the
@@ -213,16 +196,14 @@ test sources.
   command results: not usable, the non-void push path is not instantiated in
   03.31 and the needed backend hooks live on `NumericAddressedBackend`.
 - One queued notification per execution, blocking the trigger write while the
-  consumer lags: rejected, a command write must not stall (R6).
+  consumer lags: rejected, a command write must not stall (R5).
 
 ### Known gaps
 
-- `DevPipeBlob` is not usable as a command type and is rejected.
+- Commands with an array, encoded or pipe argument or result are not supported
+  and are skipped by `open()`; a user cannot reach them through the backend.
 - `ConstDevString` and `DevEnum` are mapped defensively; Tango does not allow them
   as command argument or result types, so no test server command exercises them.
-- Should the server refuse to register a command of an exotic `CmdArgType`
-  (`DevVarStateArray`, `DevVarEncodedArray`), that type stays untested; the
-  mapping exists regardless.
 - `UnifiedBackendTest` has no command concept, so command behaviour is covered by
   a dedicated test executable.
 - Attributes still reject `wait_for_new_data`; supporting them needs Tango
@@ -235,18 +216,17 @@ test sources.
 - New executable `tests/executables_src/testCommands.cpp`, run against the test
   server through `TangoServerLauncher`:
   - catalogue: `/Commands/` registers for the server's commands, `Init` absent,
-    `State` and `Status` present with their result registers;
+    `State` and `Status` present with their result registers, and a command with
+    an array or encoded argument or result absent;
   - void to void command: one trigger write executes it exactly once, visible
     through a companion command reporting the execution count;
   - argument stickiness: two triggers without a new argument send the same value;
     a trigger before any argument write throws `logic_error`;
   - result: a read before execution throws `logic_error`, a read after execution
     returns the value, a second execution replaces it;
-  - per supported type: write the argument, trigger, compare the result, using an
-    echo command per type including the arrays, the mixed pairs and the encoded
-    types;
-  - array lengths: fewer elements fill the leading buffer elements, more elements
-    throw `runtime_error`, `numberOfWords == 0` throws `logic_error`;
+  - per supported type: write the argument, trigger, compare the result, using one
+    echo command per supported type; `ConstDevString` and `DevEnum` stay untested
+    (see gaps);
   - async result: a `read()` from a second thread blocks until the trigger write
     and returns the result; `readNonBlocking()` is false before an execution and
     leaves the buffer untouched, true after it; `readLatest()` returns the cached
@@ -255,8 +235,6 @@ test sources.
     cached result without waiting;
   - versions: two plain reads of an unchanged result share a version, and after
     an execution the plain and the async accessor report the same version;
-  - composite result parts are both notified by one execution, with the same
-    version;
   - two executions before a read yield the newest result only;
   - `wait_for_new_data` for the trigger, the argument and an attribute throws
     `logic_error`;
