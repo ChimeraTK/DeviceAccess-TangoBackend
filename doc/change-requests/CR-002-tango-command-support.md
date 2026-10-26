@@ -56,9 +56,17 @@ R3. Type coverage.
 
 R4. Failures.
 
-- A Tango `DevFailed` while executing a command or while querying the command
-  list is reported as `ChimeraTK::runtime_error` naming the command.
-- A rejected command does not mark the backend faulty.
+- A Tango `DevFailed` while executing a command is reported as
+  `ChimeraTK::runtime_error` naming the command, and the accessor that detects it
+  reports it to the backend through `DeviceBackend::setException()`, as every
+  transfer element must (B.9.1) and as attribute access already does. The backend
+  is not functional until `open()` succeeds again.
+- While the backend is in the exception state, every result accessor with
+  `wait_for_new_data` receives exactly one `ChimeraTK::runtime_error` and no
+  further results (B.9.3.2); trigger writes and plain result reads throw
+  `ChimeraTK::runtime_error` (B.9.4.1, B.9.5).
+- A Tango `DevFailed` while querying the command list during `open()` yields a
+  `ChimeraTK::runtime_error` naming the command.
 - A trigger write or an argument write while the device is closed throws
   `logic_error`, as attribute access does today.
 
@@ -68,16 +76,25 @@ R5. Asynchronous result reads.
   keep rejecting it, as every register does today.
 - Requesting it for a register that does not advertise it throws `logic_error`.
 - Every execution notifies each subscribed result accessor once; a trigger write
-  never blocks.
+  never blocks, and a notification that is still pending is overwritten
+  (B.8.2.1).
 - `read()` waits for the next execution. `readNonBlocking()` returns false and
   leaves the buffer untouched while no execution is pending. `readLatest()`
   returns the cached result.
-- An accessor created after an execution starts from the cached result and does
-  not wait.
-- One new version per execution; plain reads of an unchanged result keep the
-  previous version.
+- No result is delivered before the device has been opened and
+  `Device::activateAsyncRead()` has been called (B.8.5).
+- Activation pushes the cached result as the initial value (B.8.5.2). A command
+  that has not run yet has no initial value, so its accessor waits for the first
+  execution.
+- Activating again while the asynchronous read is already active has no effect,
+  and an accessor created after activation is active immediately (B.8.5.3,
+  B.8.5.4.3).
+- A delivery carries the version number of the trigger write that produced it, so
+  plain and asynchronous reads of the same execution report the same version.
+- A plain read of a result creates a new version number, as every plain read does
+  (B.11.2.3).
 - A consumer slower than the command skips intermediate results; every read
-  returns the newest cached result of that command.
+  returns the newest cached result of that command (B.8.2.1).
 
 R6. Offline cache.
 
@@ -114,7 +131,10 @@ test sources.
   `getSupportedAccessModes()` stays empty for every register except result
   registers (see below).
 - `getNumberOfElements()` and `getNumberOfChannels()` return 1 for every command
-  register, each command register holding a single scalar value (R3).
+  register, each command register holding a single scalar value (R3). Accessor
+  creation obeys the usual catalogue bounds: a length of 0 means the whole
+  register, i.e. the single element, and a request that does not fit into the
+  register throws `logic_error` (C.5.2.2).
 - `util::mapTangoToUserType` is extended by `ConstDevString` only; every other
   supported type is mapped already. An unsupported type never reaches it, because
   the command is skipped while the catalogue is built.
@@ -147,7 +167,9 @@ test sources.
 - The result accessor unpacks the stored `Tango::DeviceData` into its single
   element buffer and reports `DataValidity::ok`. Scalars use the `DeviceData`
   scalar operators, `DevState` the array pointer operator.
-- Version numbers follow the attribute path: one new version per read.
+- Version numbers follow the attribute path: a plain read creates one version
+  (B.11.2.3); an asynchronous read takes the version of the execution that
+  produced the result (R5).
 
 ### Asynchronous result accessors
 
@@ -157,21 +179,29 @@ test sources.
   itself; the framework only checks this in `NumericAddressedBackend`.
 - The accessor installs the inherited void read queue
   (`TransferElement::_readQueue`, one slot) instead of relying on
-  `doReadTransferSynchronously`, overrides `doPostRead` to apply the value only
-  when a token was consumed, and overrides `interrupt()`.
+  `doReadTransferSynchronously` and overrides `doPostRead` to apply the value only
+  when a token was consumed.
 - Each execution pushes one token from the triggering thread, overwriting a
-  pending one, so the trigger write never blocks.
-- The accessor takes the cached `Tango::DeviceData` and the version number from
-  the command state when the token is consumed; data validity is always ok.
-- The version number is therefore created at execution time, not at read time,
-  and the command state stores it next to the result.
-- Hand-rolling is needed because the framework's push distributor
-  (`VariableDistributor` with a non-void payload) is not instantiable in 03.31
-  and the async backend hooks (`activateSubscription`,
-  `getAsyncDomainInitialValue`) exist only on `NumericAddressedBackend`. The
-  base class supports a hand-rolled queue accessor fully.
-- No activation handshake: results are delivered from accessor creation on,
-  independent of `activateAsyncRead()`.
+  pending one, so the trigger write never blocks (B.8.2.1).
+- The token carries the version number of its execution; the accessor applies the
+  cached result from the command state when the token is consumed, and reports
+  `DataValidity::ok`.
+- The backend overrides `DeviceBackend::activateAsyncRead()` (virtual, empty by
+  default) and `DeviceBackend::setException()`. Activation pushes the cached
+  result into the queue of every result accessor and marks the command as
+  activated, so an accessor created later is activated at once (B.8.5.3).
+  Activation never throws (B.8.5.5) and is idempotent (B.8.5.4.3).
+- `setException()` deactivates every result accessor and pushes exactly one
+  `ChimeraTK::runtime_error` into its queue (B.9.3.1, B.9.3.2); the accessors stay
+  inactive until the backend is opened successfully and activation is repeated.
+- The accessor implements `interrupt()` through
+  `TransferElement::interrupt_impl()` with its queue (B.8.6.6.1).
+- Hand-rolling is needed because the framework's push distributor cannot carry a
+  command result: `VariableDistributor`'s non-void payload path is not
+  instantiated in 03.31 and the async domain hooks (`activateSubscription`,
+  `getAsyncDomainInitialValue`) exist only on `NumericAddressedBackend`. The base
+  class supports a hand-rolled queue accessor fully, and
+  `DeviceBackend::activateAsyncRead()` is virtual on every backend.
 
 ### Offline cache
 
@@ -194,7 +224,9 @@ test sources.
   generated files are edited by hand.
 - The DeviceAccess async framework (`SubDomain` with a push distributor) for
   command results: not usable, the non-void push path is not instantiated in
-  03.31 and the needed backend hooks live on `NumericAddressedBackend`.
+  03.31 and the domain hooks live on `NumericAddressedBackend`. The activation
+  handshake is hand-rolled from the virtual `DeviceBackend::activateAsyncRead()`
+  and `DeviceBackend::setException()` instead.
 - One queued notification per execution, blocking the trigger write while the
   consumer lags: rejected, a command write must not stall (R5).
 
@@ -204,12 +236,17 @@ test sources.
   and are skipped by `open()`; a user cannot reach them through the backend.
 - `ConstDevString` and `DevEnum` are mapped defensively; Tango does not allow them
   as command argument or result types, so no test server command exercises them.
-- `UnifiedBackendTest` has no command concept, so command behaviour is covered by
-  a dedicated test executable.
+- `UnifiedBackendTest` has no command concept, and its register descriptors
+  require a user type and a generated test value, so the command registers are not
+  registered with it; command behaviour is covered by a dedicated test executable.
+  The rejection of an unadvertised `wait_for_new_data` (C.5.2.3.2) therefore rests
+  on the backend's own check, as the framework enforces it only in
+  `NumericAddressedBackend`.
 - Attributes still reject `wait_for_new_data`; supporting them needs Tango
   attribute subscriptions, which this change does not add.
-- Command results have no activation or deactivation handshake; data is available
-  as soon as the accessor exists.
+- A command that has not run yet cannot deliver the initial value that the
+  activation handshake asks for (B.8.5.2); its result accessor waits for the first
+  execution.
 
 ## Test plan
 
@@ -228,18 +265,27 @@ test sources.
     echo command per supported type; `ConstDevString` and `DevEnum` stay untested
     (see gaps);
   - async result: a `read()` from a second thread blocks until the trigger write
-    and returns the result; `readNonBlocking()` is false before an execution and
-    leaves the buffer untouched, true after it; `readLatest()` returns the cached
-    result;
+    and returns the result; `readNonBlocking()` is false while no execution is
+    pending and leaves the buffer untouched, true after one; `readLatest()` returns
+    the cached result;
+  - activation: an accessor created before `activateAsyncRead()` receives nothing
+    until activation, then the cached result; a command that has not run delivers
+    its first result after activation; a repeated `activateAsyncRead()` changes
+    nothing; an accessor created after activation is active at once;
+  - versions: two plain reads of an unchanged result report different versions,
+    and a plain and an asynchronous read of the same execution report the same
+    version;
   - async result of a command executed before the accessor existed returns the
     cached result without waiting;
-  - versions: two plain reads of an unchanged result share a version, and after
-    an execution the plain and the async accessor report the same version;
   - two executions before a read yield the newest result only;
   - `wait_for_new_data` for the trigger, the argument and an attribute throws
     `logic_error`;
-  - failure: a command that throws on the server side yields `runtime_error`
-    and a following attribute read still works;
+  - failure: a command that throws on the server side yields `runtime_error`, the
+    backend becomes non-functional, a subscribed result accessor receives exactly
+    one `runtime_error`, and trigger writes and plain reads throw `runtime_error`
+    until a successful `open()` and `activateAsyncRead()`;
+  - `numberOfWords`: a length of 0 yields the single element, a longer length
+    throws `logic_error`;
   - closed device: a trigger write and a result read throw `logic_error`.
 - Offline: a cache file with a `commands` array yields the command registers
   without a server; `unifiedBackendTestCache.json`, which has no `commands` key,
